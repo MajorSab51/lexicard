@@ -1,0 +1,32 @@
+# Dépendances
+node_modules/
+
+# Builds
+dist/
+dev-dist/
+*.tsbuildinfo
+
+# Tests
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environnement
+.env
+.env.*
+!.env.example
+
+# Éditeurs et OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Configuration locale de Claude Code
+.claude/
