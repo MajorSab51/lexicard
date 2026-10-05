@@ -6,7 +6,7 @@ import { ImportError } from './errors';
 
 type CardField = keyof CardContent;
 
-/** Noms de colonnes reconnus (normalisés : minuscules, sans accents ni ponctuation). */
+/** Noms de colonnes reconnus (normalisés : minuscules, sans accents, espaces ni séparateurs). */
 const HEADER_ALIASES: Record<string, CardField> = {
   terme: 'term',
   term: 'term',
@@ -52,9 +52,10 @@ const EXPORT_COLUMNS: readonly [CardField, string][] = [
 ];
 
 function normalizeHeader(cell: string): string {
+  // Les chiffres sont conservés : « word0 » est une donnée, pas l'en-tête « word ».
   return stripDiacritics(cell)
     .toLowerCase()
-    .replace(/[^a-z]/g, '');
+    .replace(/[\s_.:()-]/g, '');
 }
 
 /**

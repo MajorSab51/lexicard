@@ -38,6 +38,8 @@ describe('parseCardsCsv', () => {
 
   it('ne prend pas une vraie carte pour un en-tête', () => {
     expect(parseCardsCsv('word,mot\nhouse,maison').hasHeader).toBe(false);
+    expect(parseCardsCsv('word0;mot0;Example 0.\nword1;mot1').hasHeader).toBe(false);
+    expect(parseCardsCsv('Image URL;Terme;Traduction\n;a;b').hasHeader).toBe(true);
   });
 
   it('gère guillemets, virgules et retours à la ligne dans les cellules', () => {
