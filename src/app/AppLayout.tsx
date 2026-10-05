@@ -25,7 +25,7 @@ export function AppLayout() {
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  `flex flex-col items-center gap-1 py-2 text-xs font-medium transition-colors md:flex-row md:gap-3 md:rounded-xl md:px-3 md:py-2.5 md:text-base ${
+                  `flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors md:h-auto md:flex-row md:justify-start md:gap-3 md:rounded-xl md:px-3 md:py-2.5 md:text-base ${
                     isActive
                       ? 'text-primary md:bg-primary-soft md:text-on-primary-soft'
                       : 'text-fg-muted hover:text-fg md:hover:bg-surface-muted'

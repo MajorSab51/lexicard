@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router';
+import { Toaster } from '@/components/Toaster';
 import { useApplyTheme } from '@/hooks/useApplyTheme';
 import { t } from '@/i18n';
 
@@ -20,6 +21,7 @@ export function RootLayout() {
         {t('app.skipToContent')}
       </a>
       <Outlet />
+      <Toaster />
     </>
   );
 }

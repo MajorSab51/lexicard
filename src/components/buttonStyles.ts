@@ -1,4 +1,4 @@
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerOutline';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const base =
@@ -10,6 +10,8 @@ const variants: Record<ButtonVariant, string> = {
   secondary: 'border border-border bg-surface text-fg hover:bg-surface-muted',
   ghost: 'text-fg hover:bg-surface-muted',
   danger: 'bg-danger text-white hover:opacity-90 dark:text-bg',
+  /** Action destructive secondaire : contour neutre, texte rouge. */
+  dangerOutline: 'border border-border bg-surface text-danger hover:bg-surface-muted',
 };
 
 // Hauteur minimale de 44 px (taille md) pour un usage confortable au doigt.
