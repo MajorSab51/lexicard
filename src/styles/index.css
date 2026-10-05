@@ -1,0 +1,95 @@
+@import 'tailwindcss';
+
+/* Le mode sombre est piloté par la classe `dark` posée sur <html> (voir src/lib/theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Jetons de couleur. Palette sarcelle volontairement originale.
+ * Les couples texte/fond respectent un contraste AA (≥ 4,5:1) dans les deux thèmes.
+ */
+:root {
+  color-scheme: light;
+  --bg: #f4f7f7;
+  --surface: #ffffff;
+  --surface-muted: #e9efef;
+  --border: #cfdbdb;
+  --fg: #102222;
+  --fg-muted: #475959;
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --on-primary: #ffffff;
+  --primary-soft: #d9f3ef;
+  --on-primary-soft: #0b4f4a;
+  --success: #15803d;
+  --danger: #b91c1c;
+  --warning: #a16207;
+  --focus: #0f766e;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #0b1515;
+  --surface: #122121;
+  --surface-muted: #1a2d2d;
+  --border: #2b4141;
+  --fg: #e5f0ef;
+  --fg-muted: #9db2b0;
+  --primary: #2dd4bf;
+  --primary-hover: #5eead4;
+  --on-primary: #042f2e;
+  --primary-soft: #133f3c;
+  --on-primary-soft: #b4f5ea;
+  --success: #4ade80;
+  --danger: #f87171;
+  --warning: #facc15;
+  --focus: #5eead4;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary-soft: var(--on-primary-soft);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-focus: var(--focus);
+
+  /* Polices système : aucun téléchargement de police, donc aucun appel réseau. */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-bg font-sans text-fg antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+/* Respect de la préférence « réduire les animations ». */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

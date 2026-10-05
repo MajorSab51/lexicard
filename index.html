@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="LexiCards : apprends ton vocabulaire avec des cartes mémoire."
+    />
+    <meta name="theme-color" content="#0f766e" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>LexiCards</title>
+    <script>
+      // Applique le thème avant le premier rendu pour éviter un flash de couleur.
+      (function () {
+        var preference = 'system';
+        try {
+          var stored = JSON.parse(localStorage.getItem('lexicards.theme') || 'null');
+          if (stored && stored.state && stored.state.preference)
+            preference = stored.state.preference;
+        } catch (e) {
+          /* stockage indisponible : thème automatique */
+        }
+        var dark =
+          preference === 'dark' ||
+          (preference !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
