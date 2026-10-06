@@ -2,7 +2,7 @@
 
 Application web personnelle pour apprendre du vocabulaire avec des cartes mémoire, plusieurs modes d'étude et de la répétition espacée. Toutes les données restent dans le navigateur : aucun compte, aucun traceur, aucun appel réseau.
 
-> **État actuel : jalon 4 (modes complémentaires).** Gestion des sets et des cartes, éditeur rapide, import/export et sauvegarde, synthèse vocale, et les cinq modes d'étude : Cartes mémoire, Apprendre (SM-2, révision du jour), Écrire, Test et Associer. Les statistiques arrivent au jalon 5 (voir [Feuille de route](#feuille-de-route)).
+> **État actuel : jalon 5 (suivi).** Gestion des sets et des cartes, éditeur rapide, import/export et sauvegarde, synthèse vocale, les cinq modes d'étude (Cartes mémoire, Apprendre avec SM-2, Écrire, Test, Associer), statistiques, série de jours et objectif quotidien. Les finitions (PWA, tests de bout en bout) arrivent au jalon 6 (voir [Feuille de route](#feuille-de-route)).
 
 ## Prérequis
 
@@ -157,6 +157,24 @@ Depuis le détail d'un set, **Étudier > Associer**. Une grille de douze tuiles 
 - **Chronomètre** : chaque erreur ajoute une seconde, pour que tout essayer au hasard ne soit pas la meilleure stratégie. Le **meilleur temps** est enregistré par set.
 - Les cartes d'une partie sont tirées au hasard, sans deux termes ni deux traductions identiques (chaque tuile n'a qu'une paire possible). Il faut au moins deux cartes de ce type pour jouer.
 
+### Statistiques et progression
+
+L'onglet **Statistiques** présente, pour les 7, 30 ou 90 derniers jours (la période s'applique à toute la page) :
+
+- **Série actuelle** et record : un jour compte dès une révision dans n'importe quel mode, avec minuit (heure locale) pour limite. Tant que la journée n'est pas finie, la série de la veille reste en cours : il suffit de réviser aujourd'hui pour la prolonger.
+- **Objectif du jour** : nombre de cartes ou minutes, réglable dans Paramètres > Apprentissage (par défaut 20 cartes), avec une jauge.
+- **Taux de réussite** : part des réponses notées autres que « Raté » (les cartes simplement consultées ne comptent pas).
+- **Cartes étudiées** sur la période et temps de réponse.
+- **Cartes étudiées par jour** : colonnes avec la ligne d'objectif, détail au survol (cartes, réponses, minutes) et tableau de données dépliable, lisible au clavier et par les lecteurs d'écran.
+- **Répartition des cartes** par niveau (nouvelles, en cours, maîtrisées) et **progression de chaque set**.
+
+Ailleurs dans l'application :
+
+- l'**accueil** affiche aussi la série et l'objectif du jour ; les cartes de set (accueil et liste des sets) ont une barre de progression par niveau ;
+- la page d'un set a une section **Progression** : répartition par niveau, taux de réussite, réponses des 30 derniers jours et **cartes les plus difficiles** (le plus d'échecs, puis la plus grande part d'échecs, puis le facteur de facilité le plus bas).
+
+Une « carte étudiée » est une carte différente travaillée dans la journée, quel que soit le mode et le nombre de passages.
+
 ### Synthèse vocale
 
 Un bouton **Écouter** prononce les termes, traductions et exemples dans les modes d'étude (sauf Associer), ainsi que les termes dans le détail d'un set. La lecture utilise la Web Speech API (`speechSynthesis`) : les voix sont celles du système ou du navigateur.
@@ -182,7 +200,7 @@ Les données sont stockées dans **IndexedDB** (base `lexicards`, via Dexie) et 
 
 Une progression contient l'intervalle, le facteur de facilité, le nombre de répétitions, la date due (`AAAA-MM-JJ`), les oublis, le niveau (`learning` ou `mastered`) et le jour d'introduction (`introducedOn`), qui sert à la limite de nouvelles cartes par jour.
 
-Paramètres enregistrés dans `settings` : `srs.newCardsPerDay` (nouvelles cartes par jour), `answers.tolerance` (accents et fautes de frappe), `speech.rate` (vitesse de lecture), `speech.voices` (voix choisie par langue), `flashcards.options`, `write.options` et `test.options` (options des modes), `match.bestTimes` (meilleur temps par set, en millisecondes).
+Paramètres enregistrés dans `settings` : `srs.newCardsPerDay` (nouvelles cartes par jour), `answers.tolerance` (accents et fautes de frappe), `speech.rate` (vitesse de lecture), `speech.voices` (voix choisie par langue), `flashcards.options`, `write.options` et `test.options` (options des modes), `match.bestTimes` (meilleur temps par set, en millisecondes), `goal.daily` (objectif quotidien : `{ kind: "cards" | "minutes", target }`).
 
 Dans l'historique, `mode` indique le mode d'étude et `result` vaut `again`, `hard`, `good` ou `easy` pour une réponse notée, `seen` pour une carte simplement consultée (Cartes mémoire). Un test enregistre une ligne par carte (juste : `good`, presque juste : `hard`, fausse : `again`) ; une partie d'Associer, une ligne `good` par paire trouvée. Seuls les modes Apprendre et Écrire modifient la répétition espacée.
 
@@ -212,7 +230,8 @@ src/
 ├─ domain/       Logique métier pure, sans React ni IndexedDB, entièrement testée
 │                (modèle, cartes, doublons, aperçu d'import, langues, voix, cartes mémoire,
 │                jours locaux, SM-2, session du jour, file du mode Apprendre, correction
-│                des réponses, session Écrire, génération des tests, jeu Associer)
+│                des réponses, session Écrire, génération des tests, jeu Associer,
+│                statistiques : activité, série, réussite, cartes difficiles, objectif)
 ├─ data/         Base Dexie, dépôts (sets, cartes, progression, historique, paramètres),
 │                requêtes réactives
 │  └─ import-export/  CSV, JSON, sauvegarde, décodage des fichiers
@@ -235,19 +254,20 @@ Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sa
 
 ### Choix techniques
 
-| Couche    | Choix                                                                       |
-| --------- | --------------------------------------------------------------------------- |
-| Langage   | TypeScript 6.0 en mode strict (+ `noUncheckedIndexedAccess`)                |
-| Interface | React 19, Vite 8                                                            |
-| Style     | Tailwind CSS 4, jetons de couleur en variables CSS                          |
-| Routage   | React Router 8 (routeur par hash)                                           |
-| Données   | IndexedDB via Dexie 4 et `dexie-react-hooks`                                |
-| État      | Zustand pour l'état d'interface ; données lues directement depuis IndexedDB |
-| CSV       | PapaParse                                                                   |
-| Listes    | `@tanstack/react-virtual` (listes de plus de 200 cartes)                    |
-| Icônes    | lucide-react                                                                |
-| Tests     | Vitest, Testing Library, jsdom, fake-indexeddb                              |
-| Qualité   | ESLint 10 (typescript-eslint, react-hooks, jsx-a11y), Prettier, Husky       |
+| Couche     | Choix                                                                       |
+| ---------- | --------------------------------------------------------------------------- |
+| Langage    | TypeScript 6.0 en mode strict (+ `noUncheckedIndexedAccess`)                |
+| Interface  | React 19, Vite 8                                                            |
+| Style      | Tailwind CSS 4, jetons de couleur en variables CSS                          |
+| Routage    | React Router 8 (routeur par hash)                                           |
+| Données    | IndexedDB via Dexie 4 et `dexie-react-hooks`                                |
+| État       | Zustand pour l'état d'interface ; données lues directement depuis IndexedDB |
+| CSV        | PapaParse                                                                   |
+| Listes     | `@tanstack/react-virtual` (listes de plus de 200 cartes)                    |
+| Graphiques | Recharts (chargé seulement sur la page Statistiques)                        |
+| Icônes     | lucide-react                                                                |
+| Tests      | Vitest, Testing Library, jsdom, fake-indexeddb                              |
+| Qualité    | ESLint 10 (typescript-eslint, react-hooks, jsx-a11y), Prettier, Husky       |
 
 **Compromis assumés**
 
@@ -262,6 +282,9 @@ Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sa
 - **« Presque correct » vaut Difficile** dans la répétition espacée : la carte reste retenue, mais son facteur de facilité baisse. Dans un test, une réponse presque correcte compte comme juste et apparaît dans une liste à part.
 - **Séparateurs `;` et `/`** : ils découpent toujours la réponse attendue en plusieurs formulations acceptées, comme le demande le cahier des charges. Une traduction qui contient une barre oblique (« 1/2 ») est donc découpée elle aussi ; la réponse complète reste acceptée.
 - **Meilleurs temps d'Associer** : gardés dans les paramètres, ils ne sont pas effacés à la suppression d'un set (quelques octets).
+- **Minutes de l'objectif** : elles additionnent le temps de réponse enregistré pour chaque carte (de l'affichage à la réponse, ou au retournement pour les cartes mémoire). Le temps passé à lire la correction ou les détails n'est pas compté : c'est une mesure prudente du temps d'étude.
+- **Statistiques tirées de l'historique** : les révisions des cartes et des sets supprimés restent dans les totaux, la série et le taux de réussite. Les cartes supprimées n'apparaissent plus dans le classement des cartes difficiles.
+- **Couleurs des niveaux** : une seule teinte, plus foncée avec la progression en thème clair et plus claire en thème sombre. La rampe a été vérifiée par calcul (ordre de luminosité, écarts visibles, contraste de la teinte la plus pâle ≥ 2:1 sur la surface). Les nombres sont toujours écrits à côté de la barre.
 - **Changement de jour** : les compteurs sont recalculés à chaque affichage ou modification des données. Une page laissée ouverte après minuit se met à jour à la navigation suivante.
 - **Voix dépendantes de l'appareil** : un Windows en français n'a souvent que des voix françaises. L'anglais, l'espagnol ou l'allemand demandent alors d'installer des voix (voir [Synthèse vocale](#synthèse-vocale)). Les voix choisies sont incluses dans les sauvegardes ; si une voix n'existe pas sur un autre appareil, le choix automatique prend le relais.
 
@@ -287,5 +310,5 @@ Tous les textes sont dans `src/i18n/fr.ts`. La fonction `t('nav.home')` est typ�
 - [x] **Jalon 2, étude de base** : mode Cartes mémoire, synthèse vocale
 - [x] **Jalon 3, répétition espacée** : module SM-2, mode Apprendre, session du jour
 - [x] **Jalon 4, modes complémentaires** : Écrire, Test, Associer
-- [ ] **Jalon 5, suivi** : statistiques, objectifs, série de jours
+- [x] **Jalon 5, suivi** : statistiques, objectifs, série de jours
 - [ ] **Jalon 6, finitions** : paramètres, accessibilité, PWA, tests de bout en bout
