@@ -1,4 +1,5 @@
 import { CircleAlert, CircleCheck, Info, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { t } from '@/i18n';
 import { useToastStore, type ToastTone } from '@/lib/toast';
 
@@ -14,8 +15,11 @@ const TONE_CLASSES: Record<ToastTone, string> = {
   info: 'text-primary',
 };
 
-/** Zone d'affichage des messages éphémères, au-dessus de la barre d'onglets sur mobile. */
-export function Toaster() {
+/**
+ * Zone d'affichage des messages éphémères, au-dessus de la barre d'onglets sur mobile.
+ * `children` y place des messages persistants (proposition de mise à jour).
+ */
+export function Toaster({ children }: { children?: ReactNode }) {
   const toasts = useToastStore((state) => state.toasts);
   const dismiss = useToastStore((state) => state.dismiss);
 
@@ -24,6 +28,7 @@ export function Toaster() {
       aria-live="polite"
       className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 md:bottom-6"
     >
+      {children}
       {toasts.map(({ id, message, tone }) => {
         const Icon = ICONS[tone];
         return (

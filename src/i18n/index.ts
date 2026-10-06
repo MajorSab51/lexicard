@@ -14,7 +14,19 @@ export type Locale = 'fr';
 export const DEFAULT_LOCALE: Locale = 'fr';
 
 const dictionaries: Record<Locale, Messages> = { fr };
+
+/** Langues proposées, chacune écrite dans sa propre langue. */
+export const LOCALE_NAMES: Record<Locale, string> = { fr: 'Français' };
+export const LOCALES = Object.keys(dictionaries) as Locale[];
+
+/** Clé localStorage : la langue doit être connue avant le premier rendu, comme le thème. */
+export const LOCALE_STORAGE_KEY = 'lexicards.locale';
+
 let currentLocale: Locale = DEFAULT_LOCALE;
+
+export function isLocale(value: unknown): value is Locale {
+  return typeof value === 'string' && (LOCALES as string[]).includes(value);
+}
 
 export function getLocale(): Locale {
   return currentLocale;
@@ -24,6 +36,27 @@ export function getLocale(): Locale {
 export function setLocale(locale: Locale) {
   currentLocale = locale;
   document.documentElement.lang = locale;
+}
+
+/** Applique la langue enregistrée sur cet appareil (à appeler avant le premier rendu). */
+export function restoreLocale() {
+  try {
+    const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (isLocale(saved)) setLocale(saved);
+  } catch {
+    // Stockage indisponible : langue par défaut.
+  }
+}
+
+/** Enregistre la langue choisie puis recharge l'interface pour l'appliquer. */
+export function changeLocale(locale: Locale) {
+  try {
+    localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+  } catch {
+    // Stockage indisponible : le choix vaut pour cette visite seulement.
+  }
+  setLocale(locale);
+  window.location.reload();
 }
 
 function lookup(messages: Messages, key: string): string {

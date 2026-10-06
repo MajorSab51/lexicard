@@ -25,7 +25,6 @@ export const fr = {
     delete: 'Supprimer',
     edit: 'Modifier',
     loading: 'Chargement…',
-    comingSoon: 'Cet écran sera disponible au {milestone}.',
     unexpectedError: "Une erreur inattendue s'est produite. Réessaie.",
   },
   counts: {
@@ -499,7 +498,7 @@ export const fr = {
   },
   settings: {
     title: 'Paramètres',
-    appearance: 'Apparence',
+    appearance: 'Apparence et langue',
     theme: 'Thème',
     themeOptions: {
       light: 'Clair',
@@ -559,14 +558,33 @@ export const fr = {
       'Activé : le navigateur ne supprimera pas tes données pour libérer de l’espace.',
     storageNotPersisted:
       'Non activé : le navigateur pourrait effacer tes données s’il manque d’espace. Pense aux sauvegardes.',
+    language: 'Langue de l’interface',
+    languageHint:
+      'Seul le français est disponible pour l’instant ; les textes sont prêts à être traduits.',
+    app: 'Application',
+    installed: 'LexiCards est installée sur cet appareil.',
+    install: 'Installer l’application',
+    installHint:
+      'Elle s’ouvre alors dans sa propre fenêtre, depuis l’écran d’accueil ou le menu Démarrer.',
+    installIos:
+      'Pour l’installer sur iPhone ou iPad : touche Partager, puis « Sur l’écran d’accueil ».',
+    installOther:
+      'Pour l’installer, utilise le menu de ton navigateur (« Installer l’application » ou « Ajouter à l’écran d’accueil ») s’il le propose.',
+    offline: 'Hors ligne',
+    offlineReady: 'Disponible : l’application fonctionne sans connexion.',
+    offlinePending: 'En préparation : la mise en cache se termine pendant ta visite.',
+    offlineUnsupported: 'Ce navigateur ne permet pas l’usage hors ligne.',
+    version: 'Version {version}',
+  },
+  pwa: {
+    updateAvailable: 'Une nouvelle version de LexiCards est disponible.',
+    update: 'Mettre à jour',
+    later: 'Plus tard',
+    offlineReady: 'LexiCards est prête à fonctionner hors ligne.',
   },
   notFound: {
     title: 'Page introuvable',
     body: "Cette page n'existe pas ou a été déplacée.",
     goHome: "Revenir à l'accueil",
-  },
-  milestones: {
-    m4: 'jalon 4',
-    m5: 'jalon 5',
   },
 } as const;

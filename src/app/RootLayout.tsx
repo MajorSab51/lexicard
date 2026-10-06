@@ -3,8 +3,12 @@ import { Toaster } from '@/components/Toaster';
 import { useApplyTheme } from '@/hooks/useApplyTheme';
 import { t } from '@/i18n';
 import { SpeechProvider } from './SpeechProvider';
+import { UpdatePrompt } from './UpdatePrompt';
 
-/** Racine commune à tous les écrans : thème, synthèse vocale, notifications et lien d'évitement. */
+/**
+ * Racine commune à tous les écrans : thème, synthèse vocale, notifications,
+ * mises à jour de l'application et lien d'évitement.
+ */
 export function RootLayout() {
   useApplyTheme();
 
@@ -22,7 +26,9 @@ export function RootLayout() {
         {t('app.skipToContent')}
       </a>
       <Outlet />
-      <Toaster />
+      <Toaster>
+        <UpdatePrompt />
+      </Toaster>
     </SpeechProvider>
   );
 }
