@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { ALL_TABLES, db } from '@/data/db';
+import { useToastStore } from '@/lib/toast';
 
 // jsdom ne fournit pas matchMedia : on simule un système en thème clair.
 Object.defineProperty(window, 'matchMedia', {
@@ -33,6 +34,7 @@ if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
 afterEach(async () => {
   cleanup();
   localStorage.clear();
+  useToastStore.setState({ toasts: [] });
   document.documentElement.className = '';
   await Promise.all(ALL_TABLES.map((table) => db.table(table).clear()));
 });

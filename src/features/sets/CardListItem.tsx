@@ -1,5 +1,6 @@
 import { Flag, Star } from 'lucide-react';
 import { memo } from 'react';
+import { AudioButton } from '@/components/AudioButton';
 import { setCardFlags } from '@/data/cardsRepository';
 import type { Card } from '@/domain/models';
 import { t } from '@/i18n';
@@ -70,6 +71,7 @@ export const CardListItem = memo(function CardListItem({
       </div>
       {!selecting && (
         <div className="flex shrink-0">
+          <AudioButton text={card.term} lang={termLang} size="sm" />
           <button
             type="button"
             aria-pressed={card.favorite}

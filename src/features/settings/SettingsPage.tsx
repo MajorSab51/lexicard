@@ -2,6 +2,7 @@ import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { t } from '@/i18n';
 import type { ThemePreference } from '@/lib/theme';
+import { AudioSection } from './AudioSection';
 import { DataSection } from './DataSection';
 import { useThemeStore } from './themeStore';
 
@@ -49,6 +50,7 @@ export function SettingsPage() {
           </fieldset>
         </section>
 
+        <AudioSection />
         <DataSection />
       </div>
     </>

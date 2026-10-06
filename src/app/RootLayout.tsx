@@ -2,13 +2,14 @@ import { Outlet } from 'react-router';
 import { Toaster } from '@/components/Toaster';
 import { useApplyTheme } from '@/hooks/useApplyTheme';
 import { t } from '@/i18n';
+import { SpeechProvider } from './SpeechProvider';
 
-/** Racine commune à tous les écrans : thème et lien d'évitement. */
+/** Racine commune à tous les écrans : thème, synthèse vocale, notifications et lien d'évitement. */
 export function RootLayout() {
   useApplyTheme();
 
   return (
-    <>
+    <SpeechProvider>
       <a
         href="#main"
         className="sr-only z-50 rounded-lg bg-primary px-4 py-2 text-on-primary focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -22,6 +23,6 @@ export function RootLayout() {
       </a>
       <Outlet />
       <Toaster />
-    </>
+    </SpeechProvider>
   );
 }
