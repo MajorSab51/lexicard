@@ -51,7 +51,7 @@ export function SetStatsSection({ set }: { set: StudySet }) {
                     <span lang={set.targetLang}>{card.translation}</span>
                   </span>
                   <span className="text-sm text-fg-muted">
-                    {tn('stats.failures', failures, { graded })}
+                    {tn('stats.failures', failures)} {tn('stats.outOfAnswers', graded)}
                   </span>
                 </li>
               ))}

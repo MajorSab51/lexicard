@@ -494,10 +494,8 @@ export const fr = {
     recentReviews: 'Réponses (30 jours)',
     hardestTitle: 'Cartes les plus difficiles',
     hardestEmpty: 'Aucune carte ratée pour l’instant.',
-    failures: {
-      one: '{count} échec sur {graded} réponses',
-      other: '{count} échecs sur {graded} réponses',
-    },
+    failures: { one: '{count} échec', other: '{count} échecs' },
+    outOfAnswers: { one: 'sur {count} réponse', other: 'sur {count} réponses' },
   },
   settings: {
     title: 'Paramètres',

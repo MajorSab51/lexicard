@@ -65,6 +65,11 @@ export function TodayPanel() {
           { label: t('srs.dueToday'), value: counts.due, tone: 'primary' },
           { label: t('srs.newToday'), value: newToday },
           { label: t('srs.mastered'), value: counts.mastered, tone: 'success' },
+        ]}
+      />
+      <StatTiles
+        className="mt-2"
+        items={[
           {
             label: t('dashboard.streak'),
             value: tn('stats.streakDays', streak.current),
