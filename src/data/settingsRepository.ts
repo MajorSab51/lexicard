@@ -4,6 +4,7 @@ import { DEFAULT_FLASHCARD_OPTIONS, isFlashcardOptions } from '@/domain/flashcar
 import { isBestTimes } from '@/domain/match';
 import type { Id } from '@/domain/models';
 import { SPEECH_RATE } from '@/domain/speech';
+import { DEFAULT_DAILY_GOAL, isDailyGoal } from '@/domain/stats';
 import { isNewCardsLimit, NEW_CARDS_PER_DAY } from '@/domain/studyPlan';
 import { DEFAULT_TEST_OPTIONS, isTestOptions } from '@/domain/testGenerator';
 import { DEFAULT_WRITE_OPTIONS, isWriteOptions } from '@/domain/writeSession';
@@ -53,6 +54,12 @@ export const SETTINGS = {
     key: 'test.options',
     fallback: DEFAULT_TEST_OPTIONS,
     isValid: isTestOptions,
+  },
+  /** Objectif quotidien : un nombre de cartes ou de minutes. */
+  dailyGoal: {
+    key: 'goal.daily',
+    fallback: DEFAULT_DAILY_GOAL,
+    isValid: isDailyGoal,
   },
   /** Meilleur temps du jeu Associer, en millisecondes, par set. */
   matchBestTimes: {
