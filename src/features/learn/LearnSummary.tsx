@@ -21,7 +21,7 @@ function ExitActions({ setId }: { setId: Id | null }) {
   if (!setId) return <ButtonLink to="/">{t('learn.backHome')}</ButtonLink>;
   return (
     <div className="flex flex-wrap justify-center gap-2">
-      <ButtonLink to={`/sets/${setId}`}>{t('learn.backToSet')}</ButtonLink>
+      <ButtonLink to={`/sets/${setId}`}>{t('study.backToSet')}</ButtonLink>
       <ButtonLink variant="secondary" to={`/sets/${setId}/flashcards`}>
         {t('learn.practice')}
       </ButtonLink>

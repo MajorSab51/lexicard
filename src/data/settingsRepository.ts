@@ -1,7 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { DEFAULT_ANSWER_TOLERANCE, isAnswerTolerance } from '@/domain/answers';
 import { DEFAULT_FLASHCARD_OPTIONS, isFlashcardOptions } from '@/domain/flashcards';
+import { isBestTimes } from '@/domain/match';
+import type { Id } from '@/domain/models';
 import { SPEECH_RATE } from '@/domain/speech';
 import { isNewCardsLimit, NEW_CARDS_PER_DAY } from '@/domain/studyPlan';
+import { DEFAULT_TEST_OPTIONS, isTestOptions } from '@/domain/testGenerator';
+import { DEFAULT_WRITE_OPTIONS, isWriteOptions } from '@/domain/writeSession';
 import { db } from './db';
 
 type Guard<T> = (value: unknown) => value is T;
@@ -32,6 +37,28 @@ export const SETTINGS = {
     key: 'srs.newCardsPerDay',
     fallback: NEW_CARDS_PER_DAY.default as number,
     isValid: isNewCardsLimit,
+  },
+  /** Tolérance de correction des réponses écrites (modes Écrire et Test). */
+  answerTolerance: {
+    key: 'answers.tolerance',
+    fallback: DEFAULT_ANSWER_TOLERANCE,
+    isValid: isAnswerTolerance,
+  },
+  writeOptions: {
+    key: 'write.options',
+    fallback: DEFAULT_WRITE_OPTIONS,
+    isValid: isWriteOptions,
+  },
+  testOptions: {
+    key: 'test.options',
+    fallback: DEFAULT_TEST_OPTIONS,
+    isValid: isTestOptions,
+  },
+  /** Meilleur temps du jeu Associer, en millisecondes, par set. */
+  matchBestTimes: {
+    key: 'match.bestTimes',
+    fallback: {} as Record<Id, number>,
+    isValid: isBestTimes,
   },
 } as const;
 
@@ -65,4 +92,16 @@ export function useSetting<T>(definition: SettingDefinition<T>): T | undefined {
 
 export function saveSetting<T>(definition: SettingDefinition<T>, value: T): Promise<void> {
   return setSetting(definition.key, value);
+}
+
+/** Modifie un paramètre à partir de sa valeur actuelle, sans risque d'écriture concurrente. */
+export function updateSetting<T>(
+  definition: SettingDefinition<T>,
+  update: (current: T) => T,
+): Promise<T> {
+  return db.transaction('rw', db.settings, async () => {
+    const next = update(await readSetting(definition));
+    await setSetting(definition.key, next);
+    return next;
+  });
 }

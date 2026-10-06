@@ -78,3 +78,14 @@ export function formatRelativeDays(days: number): string {
 export function formatNumber(value: number): string {
   return format(value);
 }
+
+/** Durée en secondes avec un chiffre après la virgule : « 12,3 s ». */
+export function formatSeconds(ms: number): string {
+  return new Intl.NumberFormat(currentLocale, {
+    style: 'unit',
+    unit: 'second',
+    unitDisplay: 'short',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(Math.floor(ms / 100) / 10);
+}

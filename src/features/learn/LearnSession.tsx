@@ -84,7 +84,7 @@ export function LearnSession({ scope, setId }: LearnSessionProps) {
       durationMs: elapsedSince(shownAt.current),
       updateSchedule: updatesSchedule(item),
     }).catch(() => {
-      toast(t('learn.saveError'), 'error');
+      toast(t('study.saveError'), 'error');
     });
     flushSync(() => {
       dispatch({ type: 'answer', grade });

@@ -1,8 +1,10 @@
-import { ArrowLeft, ArrowRight, Flag, PartyPopper, SlidersHorizontal, Star } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Flag, PartyPopper, Star } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Button, ButtonLink } from '@/components/Button';
 import { CardDetails } from '@/components/CardDetails';
+import { DirectionField } from '@/components/DirectionField';
 import { EmptyState } from '@/components/EmptyState';
+import { OptionsPanel } from '@/components/OptionsPanel';
 import { setCardFlags } from '@/data/cardsRepository';
 import { logReview } from '@/data/reviewLogsRepository';
 import { saveSetting, SETTINGS } from '@/data/settingsRepository';
@@ -89,55 +91,39 @@ export function FlashcardSession({ set, cards, initialOptions }: FlashcardSessio
   const swipe = useSwipe({ onTap: flip, onSwipeLeft: next, onSwipeRight: previous });
 
   const optionsPanel = (
-    <details className="group rounded-2xl border border-border bg-surface">
-      <summary className="flex h-11 cursor-pointer list-none items-center gap-2 px-4 font-medium select-none">
-        <SlidersHorizontal aria-hidden="true" className="size-4" />
-        {t('flashcards.options')}
-      </summary>
-      <div className="grid gap-4 border-t border-border p-4 sm:grid-cols-2">
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium">{t('flashcards.direction')}</legend>
-          {[false, true].map((reversed) => (
-            <label key={String(reversed)} className="flex items-center gap-2 py-1">
-              <input
-                type="radio"
-                name="flashcard-direction"
-                checked={options.reversed === reversed}
-                onChange={() => {
-                  changeOptions({ reversed });
-                }}
-                className="size-4 accent-(--primary)"
-              />
-              {reversed ? t('flashcards.translationFirst') : t('flashcards.termFirst')}
-            </label>
-          ))}
-        </fieldset>
-        <div className="grid content-start gap-1">
-          <label className="flex items-center gap-2 py-1">
-            <input
-              type="checkbox"
-              checked={options.shuffle}
-              onChange={(event) => {
-                changeOptions({ shuffle: event.target.checked });
-              }}
-              className="size-4 accent-(--primary)"
-            />
-            {t('flashcards.shuffle')}
-          </label>
-          <label className="flex items-center gap-2 py-1">
-            <input
-              type="checkbox"
-              checked={options.onlyDifficult}
-              onChange={(event) => {
-                changeOptions({ onlyDifficult: event.target.checked });
-              }}
-              className="size-4 accent-(--primary)"
-            />
-            {t('flashcards.onlyDifficult', { count: difficultCount })}
-          </label>
-        </div>
+    <OptionsPanel>
+      <DirectionField
+        name="flashcard-direction"
+        reversed={options.reversed}
+        onChange={(reversed) => {
+          changeOptions({ reversed });
+        }}
+      />
+      <div className="grid content-start gap-1">
+        <label className="flex items-center gap-2 py-1">
+          <input
+            type="checkbox"
+            checked={options.shuffle}
+            onChange={(event) => {
+              changeOptions({ shuffle: event.target.checked });
+            }}
+            className="size-4 accent-(--primary)"
+          />
+          {t('flashcards.shuffle')}
+        </label>
+        <label className="flex items-center gap-2 py-1">
+          <input
+            type="checkbox"
+            checked={options.onlyDifficult}
+            onChange={(event) => {
+              changeOptions({ onlyDifficult: event.target.checked });
+            }}
+            className="size-4 accent-(--primary)"
+          />
+          {t('flashcards.onlyDifficult', { count: difficultCount })}
+        </label>
       </div>
-    </details>
+    </OptionsPanel>
   );
 
   if (session.deck.length === 0) {
@@ -188,7 +174,7 @@ export function FlashcardSession({ set, cards, initialOptions }: FlashcardSessio
               </Button>
             )}
             <ButtonLink variant="ghost" to={`/sets/${set.id}`}>
-              {t('flashcards.backToSet')}
+              {t('study.backToSet')}
             </ButtonLink>
           </div>
         }

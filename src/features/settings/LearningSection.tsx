@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TextField } from '@/components/fields';
+import { ToleranceFields } from '@/components/ToleranceFields';
 import { saveSetting, SETTINGS, useSetting } from '@/data/settingsRepository';
 import { isNewCardsLimit, NEW_CARDS_PER_DAY } from '@/domain/studyPlan';
 import { t } from '@/i18n';
@@ -47,6 +48,7 @@ function NewCardsField({ saved }: { saved: number }) {
 
 export function LearningSection() {
   const limit = useSetting(SETTINGS.newCardsPerDay);
+  const tolerance = useSetting(SETTINGS.answerTolerance);
 
   return (
     <section
@@ -56,7 +58,19 @@ export function LearningSection() {
       <h2 id="settings-learning" className="mb-4 text-lg font-semibold">
         {t('settings.learning')}
       </h2>
-      <div className="sm:max-w-md">{limit !== undefined && <NewCardsField saved={limit} />}</div>
+      <div className="grid gap-6 sm:max-w-md">
+        {limit !== undefined && <NewCardsField saved={limit} />}
+        {tolerance && (
+          <fieldset>
+            <legend className="font-medium">{t('answers.tolerance')}</legend>
+            <p className="mb-3 text-sm text-fg-muted">{t('answers.toleranceHint')}</p>
+            <ToleranceFields
+              value={tolerance}
+              onChange={(value) => void saveSetting(SETTINGS.answerTolerance, value)}
+            />
+          </fieldset>
+        )}
+      </div>
     </section>
   );
 }

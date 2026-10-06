@@ -3,10 +3,10 @@ import { useParams } from 'react-router';
 import { ButtonLink } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { Loading } from '@/components/Loading';
+import { useStudyScope } from '@/data/useStudyScope';
 import { SetNotFound } from '@/features/sets/SetNotFound';
 import { t } from '@/i18n';
 import { LearnSession } from './LearnSession';
-import { useStudyScope } from './useStudyScope';
 
 /** Mode Apprendre : un set (`/sets/:setId/learn`), ou tous les sets (`/learn`, « Tout réviser »). */
 export function LearnPage() {

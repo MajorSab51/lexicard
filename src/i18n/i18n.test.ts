@@ -1,4 +1,4 @@
-import { formatRelativeDays, t } from './index';
+import { formatRelativeDays, formatSeconds, t } from './index';
 
 describe('t', () => {
   it('retourne le texte français d’une clé imbriquée', () => {
@@ -19,5 +19,13 @@ describe('formatRelativeDays', () => {
     expect(formatRelativeDays(0)).toBe('aujourd’hui');
     expect(formatRelativeDays(1)).toBe('demain');
     expect(formatRelativeDays(6)).toBe('dans 6 jours');
+  });
+});
+
+describe('formatSeconds', () => {
+  it('affiche les dixièmes de seconde', () => {
+    // Intl sépare le nombre et l’unité par une espace fine insécable.
+    expect(formatSeconds(12_345)).toBe('12,3\u202Fs');
+    expect(formatSeconds(900)).toBe('0,9\u202Fs');
   });
 });

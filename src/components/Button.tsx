@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ComponentProps } from 'react';
 import { Link, type LinkProps } from 'react-router';
 import { buttonClasses, type ButtonSize, type ButtonVariant } from './buttonStyles';
 
@@ -13,7 +13,7 @@ export function Button({
   className = '',
   type = 'button',
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & StyleProps) {
+}: ComponentProps<'button'> & StyleProps) {
   return (
     <button type={type} className={`${buttonClasses(variant, size)} ${className}`} {...props} />
   );
