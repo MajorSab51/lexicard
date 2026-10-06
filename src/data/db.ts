@@ -16,7 +16,7 @@ export const DATABASE_NAME = 'lexicards';
  * (avec `upgrade()` si les données existantes doivent être transformées)
  * sans jamais modifier les versions précédentes.
  */
-function createDatabase(name: string): LexiCardsDatabase {
+export function createDatabase(name: string): LexiCardsDatabase {
   const database = new Dexie(name) as LexiCardsDatabase;
   database.version(1).stores({
     sets: 'id, userId, updatedAt, sourceLang, targetLang, *tags',
@@ -25,6 +25,18 @@ function createDatabase(name: string): LexiCardsDatabase {
     reviewLogs: 'id, userId, cardId, setId, reviewedAt',
     settings: 'key',
   });
+  // Jalon 3 : jour d'introduction des cartes, pour la limite de nouvelles cartes par jour.
+  database
+    .version(2)
+    .stores({ progress: 'cardId, userId, dueDate, status, introducedOn' })
+    .upgrade((tx) =>
+      tx
+        .table<Partial<CardProgress>>('progress')
+        .toCollection()
+        .modify((progress) => {
+          progress.introducedOn ??= null;
+        }),
+    );
   return database;
 }
 

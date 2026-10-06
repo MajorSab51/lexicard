@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { DEFAULT_FLASHCARD_OPTIONS, isFlashcardOptions } from '@/domain/flashcards';
 import { SPEECH_RATE } from '@/domain/speech';
+import { isNewCardsLimit, NEW_CARDS_PER_DAY } from '@/domain/studyPlan';
 import { db } from './db';
 
 type Guard<T> = (value: unknown) => value is T;
@@ -26,6 +27,12 @@ export const SETTINGS = {
     fallback: DEFAULT_FLASHCARD_OPTIONS,
     isValid: isFlashcardOptions,
   },
+  /** Nouvelles cartes introduites par jour, tous sets confondus. */
+  newCardsPerDay: {
+    key: 'srs.newCardsPerDay',
+    fallback: NEW_CARDS_PER_DAY.default as number,
+    isValid: isNewCardsLimit,
+  },
 } as const;
 
 /** Lit un paramètre ; retourne la valeur par défaut s'il est absent ou invalide. */
@@ -44,6 +51,10 @@ interface SettingDefinition<T> {
   key: string;
   fallback: T;
   isValid: Guard<T>;
+}
+
+export function readSetting<T>({ key, fallback, isValid }: SettingDefinition<T>): Promise<T> {
+  return getSetting(key, fallback, isValid);
 }
 
 /** Valeur réactive d'un paramètre ; `undefined` pendant le chargement. */

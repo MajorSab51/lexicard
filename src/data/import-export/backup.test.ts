@@ -23,6 +23,7 @@ async function seed() {
     lastReviewedAt: '2026-10-05T08:00:00.000Z',
     lapses: 1,
     status: 'learning',
+    introducedOn: null,
   });
   await db.reviewLogs.add({
     id: 'log-1',
@@ -87,6 +88,29 @@ describe('sauvegarde complète', () => {
     expect(backup.data.progress).toHaveLength(0);
     expect(backup.data.reviewLogs).toHaveLength(0);
     expect(skipped).toBe(4);
+  });
+
+  it('valide la progression : date due obligatoire, niveau déduit de l’intervalle', () => {
+    const text = JSON.stringify({
+      format: 'lexicards.backup',
+      version: 1,
+      data: {
+        sets: [{ id: 's1', title: 'Set' }],
+        cards: ['c1', 'c2', 'c3'].map((id) => ({ id, setId: 's1', term: id, translation: id })),
+        progress: [
+          { cardId: 'c1', dueDate: '2026-11-30', interval: 30, status: 'new', easeFactor: 0.5 },
+          { cardId: 'c2', dueDate: '2026-10-08', interval: 2, introducedOn: '2026-10-06' },
+          { cardId: 'c3', dueDate: 'demain' },
+        ],
+      },
+    });
+    const { backup, skipped } = parseBackup(text);
+    expect(backup.data.progress).toEqual([
+      expect.objectContaining({ cardId: 'c1', status: 'mastered', easeFactor: 1.3 }),
+      expect.objectContaining({ cardId: 'c2', status: 'learning', introducedOn: '2026-10-06' }),
+    ]);
+    expect(backup.data.progress[0]?.introducedOn).toBeNull();
+    expect(skipped).toBe(1);
   });
 
   it('refuse un fichier qui n’est pas une sauvegarde', () => {

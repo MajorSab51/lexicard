@@ -78,20 +78,30 @@ export type CardContent = Pick<
   'term' | 'translation' | 'example' | 'note' | 'imageUrl' | 'partOfSpeech' | 'gender'
 >;
 
-export type CardStatus = 'new' | 'learning' | 'mastered';
+export const CARD_STATUSES = ['new', 'learning', 'mastered'] as const;
+/** Niveau d'une carte : jamais étudiée, en cours d'apprentissage, ou maîtrisée. */
+export type CardStatus = (typeof CARD_STATUSES)[number];
 
-/** État de répétition espacée d'une carte (utilisé à partir du jalon 3). */
+/**
+ * État de répétition espacée d'une carte (algorithme SM-2, voir `domain/srs.ts`).
+ * Une carte sans enregistrement de progression est une carte nouvelle.
+ */
 export interface CardProgress {
   cardId: Id;
   userId: Id | null;
+  /** Intervalle actuel, en jours. */
   interval: number;
   easeFactor: number;
+  /** Nombre de rappels réussis d'affilée. */
   repetitions: number;
   /** Jour de la prochaine révision, au format local `AAAA-MM-JJ`. */
   dueDate: string;
   lastReviewedAt: IsoDateTime | null;
+  /** Nombre d'oublis d'une carte déjà retenue. */
   lapses: number;
   status: CardStatus;
+  /** Jour de la première révision (`AAAA-MM-JJ`) : sert à la limite de nouvelles cartes par jour. */
+  introducedOn: string | null;
 }
 
 export const STUDY_MODES = ['flashcards', 'learn', 'write', 'test', 'match'] as const;

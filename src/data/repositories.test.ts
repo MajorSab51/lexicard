@@ -15,6 +15,7 @@ async function addProgress(cardId: string) {
     lastReviewedAt: null,
     lapses: 0,
     status: 'learning',
+    introducedOn: null,
   });
 }
 

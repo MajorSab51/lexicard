@@ -1,3 +1,4 @@
+import { isLocalDay } from '@/domain/dates';
 import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG } from '@/domain/languages';
 import {
   GENDERS,
@@ -7,13 +8,13 @@ import {
   STUDY_MODES,
   type Card,
   type CardProgress,
-  type CardStatus,
   type ReviewLog,
   type ReviewResult,
   type Setting,
   type StudyMode,
   type StudySet,
 } from '@/domain/models';
+import { SRS, statusForInterval } from '@/domain/srs';
 import { nowIso } from '@/lib/id';
 import { db } from '../db';
 import { ImportError } from './errors';
@@ -73,8 +74,6 @@ export async function createBackup(): Promise<Backup> {
   return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: nowIso(), data };
 }
 
-const CARD_STATUSES: readonly CardStatus[] = ['new', 'learning', 'mastered'];
-
 function readUserId(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
@@ -124,18 +123,21 @@ function readCard(item: JsonObject, now: string): Card | null {
 
 function readProgress(item: JsonObject): CardProgress | null {
   const cardId = readString(item.cardId);
-  const dueDate = readString(item.dueDate);
-  if (!cardId || !dueDate) return null;
+  const { dueDate, introducedOn } = item;
+  if (!cardId || !isLocalDay(dueDate)) return null;
+  const interval = Math.max(0, readNumber(item.interval, 0));
   return {
     cardId,
     userId: readUserId(item.userId),
-    interval: readNumber(item.interval, 0),
-    easeFactor: readNumber(item.easeFactor, 2.5),
-    repetitions: readNumber(item.repetitions, 0),
+    interval,
+    easeFactor: Math.max(SRS.minEase, readNumber(item.easeFactor, SRS.initialEase)),
+    repetitions: Math.max(0, readNumber(item.repetitions, 0)),
     dueDate,
     lastReviewedAt: typeof item.lastReviewedAt === 'string' ? item.lastReviewedAt : null,
-    lapses: readNumber(item.lapses, 0),
-    status: readOneOf(item.status, CARD_STATUSES, 'learning'),
+    lapses: Math.max(0, readNumber(item.lapses, 0)),
+    // Le niveau se déduit de l'intervalle : un niveau importé incohérent est ignoré.
+    status: statusForInterval(interval),
+    introducedOn: isLocalDay(introducedOn) ? introducedOn : null,
   };
 }
 

@@ -1,22 +1,13 @@
 import { aStoredCard } from '@/test/factories';
+import { seeded } from '@/test/random';
 import {
   buildDeck,
   cardFaces,
   flashcardReducer,
   isFlashcardOptions,
-  shuffle,
   startSession,
 } from './flashcards';
 import type { Card } from './models';
-
-/** Générateur pseudo-aléatoire déterministe pour des mélanges reproductibles. */
-function seeded(seed: number) {
-  let state = seed;
-  return () => {
-    state = (state * 16807) % 2147483647;
-    return (state - 1) / 2147483646;
-  };
-}
 
 const cards: Card[] = ['a', 'b', 'c', 'd', 'e'].map((id, order) =>
   aStoredCard(id, { order, difficult: id === 'b' || id === 'd' }),
@@ -41,14 +32,6 @@ describe('buildDeck', () => {
     const deck = buildDeck(cards, { shuffle: true, onlyDifficult: false }, seeded(42));
     expect(deck).not.toEqual(['a', 'b', 'c', 'd', 'e']);
     expect([...deck].sort()).toEqual(['a', 'b', 'c', 'd', 'e']);
-  });
-});
-
-describe('shuffle', () => {
-  it('est reproductible avec le même générateur et ne modifie pas l’entrée', () => {
-    const input = [1, 2, 3, 4, 5, 6];
-    expect(shuffle(input, seeded(7))).toEqual(shuffle(input, seeded(7)));
-    expect(input).toEqual([1, 2, 3, 4, 5, 6]);
   });
 });
 

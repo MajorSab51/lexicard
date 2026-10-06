@@ -1,7 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { Card, Id, StudySet } from '@/domain/models';
+import { toLocalDay, type LocalDay } from '@/domain/dates';
+import type { Card, CardProgress, Id, StudySet } from '@/domain/models';
+import { countSrs, newCardAllowance, type SrsCounts } from '@/domain/studyPlan';
 import { getSetCards } from './cardsRepository';
 import { db } from './db';
+import { countIntroducedOn } from './progressRepository';
+import { readSetting, SETTINGS } from './settingsRepository';
 
 /*
  * Requêtes réactives : les composants se mettent à jour automatiquement
@@ -31,5 +35,50 @@ export function useCardCounts(): Map<Id, number> | undefined {
     const counts = new Map<Id, number>();
     for (const setId of setIds) counts.set(setId, (counts.get(setId) ?? 0) + 1);
     return counts;
+  }, []);
+}
+
+/** Compteurs de répétition espacée d'un set : à réviser aujourd'hui, puis cartes par niveau. */
+export function useSetSrsCounts(setId: Id | undefined): SrsCounts | undefined {
+  return useLiveQuery(async () => {
+    const ids: Id[] = setId ? await db.cards.where('setId').equals(setId).primaryKeys() : [];
+    const progress = new Map<Id, CardProgress>();
+    for (const entry of await db.progress.bulkGet(ids)) {
+      if (entry) progress.set(entry.cardId, entry);
+    }
+    return countSrs(ids, progress, toLocalDay(new Date()));
+  }, [setId]);
+}
+
+export interface DailyOverview {
+  /** Compteurs de toutes les cartes, tous sets confondus. */
+  counts: SrsCounts;
+  newLimit: number;
+  /** Nouvelles cartes proposées aujourd'hui, dans la limite restante du jour. */
+  newToday: number;
+  /** Jour de la prochaine révision prévue (`null` si aucune carte n'a été étudiée). */
+  nextDue: LocalDay | null;
+}
+
+/** Vue d'ensemble du jour pour l'accueil, calculée avec les index (sans lire toutes les cartes). */
+export function useDailyOverview(): DailyOverview | undefined {
+  return useLiveQuery(async () => {
+    const today = toLocalDay(new Date());
+    const [total, due, learning, mastered, newLimit, introducedToday, first] = await Promise.all([
+      db.cards.count(),
+      db.progress.where('dueDate').belowOrEqual(today).count(),
+      db.progress.where('status').equals('learning').count(),
+      db.progress.where('status').equals('mastered').count(),
+      readSetting(SETTINGS.newCardsPerDay),
+      countIntroducedOn(today),
+      db.progress.orderBy('dueDate').first(),
+    ]);
+    const fresh = Math.max(0, total - learning - mastered);
+    return {
+      counts: { total, due, new: fresh, learning, mastered },
+      newLimit,
+      newToday: Math.min(fresh, newCardAllowance(newLimit, introducedToday)),
+      nextDue: first?.dueDate ?? null,
+    };
   }, []);
 }
