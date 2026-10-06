@@ -94,8 +94,14 @@ export interface CardProgress {
   status: CardStatus;
 }
 
-export type StudyMode = 'flashcards' | 'learn' | 'write' | 'test' | 'match';
-export type ReviewResult = 'again' | 'hard' | 'good' | 'easy';
+export const STUDY_MODES = ['flashcards', 'learn', 'write', 'test', 'match'] as const;
+export type StudyMode = (typeof STUDY_MODES)[number];
+export const REVIEW_RESULTS = ['again', 'hard', 'good', 'easy', 'seen'] as const;
+/**
+ * Résultat d'une révision. Les quatre premiers sont des notes de répétition espacée ;
+ * `seen` indique une carte simplement consultée (mode Cartes mémoire), sans notation.
+ */
+export type ReviewResult = (typeof REVIEW_RESULTS)[number];
 
 export interface ReviewLog {
   id: Id;

@@ -2,7 +2,9 @@ import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG } from '@/domain/languages';
 import {
   GENDERS,
   PARTS_OF_SPEECH,
+  REVIEW_RESULTS,
   SET_COLORS,
+  STUDY_MODES,
   type Card,
   type CardProgress,
   type CardStatus,
@@ -71,8 +73,6 @@ export async function createBackup(): Promise<Backup> {
   return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: nowIso(), data };
 }
 
-const STUDY_MODES: readonly StudyMode[] = ['flashcards', 'learn', 'write', 'test', 'match'];
-const REVIEW_RESULTS: readonly ReviewResult[] = ['again', 'hard', 'good', 'easy'];
 const CARD_STATUSES: readonly CardStatus[] = ['new', 'learning', 'mastered'];
 
 function readUserId(value: unknown): string | null {
