@@ -4,6 +4,7 @@ import { ToleranceFields } from '@/components/ToleranceFields';
 import { saveSetting, SETTINGS, useSetting } from '@/data/settingsRepository';
 import { isNewCardsLimit, NEW_CARDS_PER_DAY } from '@/domain/studyPlan';
 import { t } from '@/i18n';
+import { GoalFields } from './GoalFields';
 
 function parseLimit(text: string): number | null {
   const value = Number(text);
@@ -49,6 +50,7 @@ function NewCardsField({ saved }: { saved: number }) {
 export function LearningSection() {
   const limit = useSetting(SETTINGS.newCardsPerDay);
   const tolerance = useSetting(SETTINGS.answerTolerance);
+  const goal = useSetting(SETTINGS.dailyGoal);
 
   return (
     <section
@@ -60,6 +62,7 @@ export function LearningSection() {
       </h2>
       <div className="grid gap-6 sm:max-w-md">
         {limit !== undefined && <NewCardsField saved={limit} />}
+        {goal && <GoalFields saved={goal} />}
         {tolerance && (
           <fieldset>
             <legend className="font-medium">{t('answers.tolerance')}</legend>

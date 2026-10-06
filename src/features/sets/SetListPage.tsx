@@ -7,6 +7,7 @@ import { inputClasses } from '@/components/fieldStyles';
 import { Loading } from '@/components/Loading';
 import { PageHeader } from '@/components/PageHeader';
 import { useCardCounts, useSets } from '@/data/hooks';
+import { useSetsProgress } from '@/data/statsHooks';
 import { languageName } from '@/domain/languages';
 import { t, tn } from '@/i18n';
 import { SetSummaryCard } from './SetSummaryCard';
@@ -21,6 +22,7 @@ const PARAMS: Record<keyof SetFilters, string> = {
 export function SetListPage() {
   const sets = useSets();
   const counts = useCardCounts();
+  const progress = useSetsProgress();
   // Les filtres vivent dans l'URL : ils sont conservés au retour depuis un set.
   const [params, setParams] = useSearchParams();
   const filters: SetFilters = {
@@ -175,7 +177,11 @@ export function SetListPage() {
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((set) => (
             <li key={set.id}>
-              <SetSummaryCard set={set} cardCount={counts.get(set.id) ?? 0} />
+              <SetSummaryCard
+                set={set}
+                cardCount={counts.get(set.id) ?? 0}
+                counts={progress?.get(set.id)}
+              />
             </li>
           ))}
         </ul>

@@ -89,3 +89,29 @@ export function formatSeconds(ms: number): string {
     maximumFractionDigits: 1,
   }).format(Math.floor(ms / 100) / 10);
 }
+
+/** Jour court : « 6 oct. ». */
+export function formatShortDay(day: string): string {
+  const [year = 0, month = 1, date = 1] = day.split('-').map(Number);
+  return new Intl.DateTimeFormat(currentLocale, { day: 'numeric', month: 'short' }).format(
+    new Date(year, month - 1, date),
+  );
+}
+
+/** Jour complet : « mardi 6 octobre ». */
+export function formatLongDay(day: string): string {
+  const [year = 0, month = 1, date = 1] = day.split('-').map(Number);
+  return new Intl.DateTimeFormat(currentLocale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date(year, month - 1, date));
+}
+
+/** Pourcentage arrondi à l'unité : « 75 % ». */
+export function formatPercent(ratio: number): string {
+  return new Intl.NumberFormat(currentLocale, {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  }).format(ratio);
+}

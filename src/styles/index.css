@@ -24,6 +24,11 @@
   --danger: #b91c1c;
   --warning: #a16207;
   --focus: #0f766e;
+  /* Niveaux des cartes (nouvelle → en cours → maîtrisée) : rampe ordinale d'une seule teinte,
+     plus foncée avec la progression ; vérifiée contre la surface claire (extrémité ≥ 2:1). */
+  --level-new: #14b8a6;
+  --level-learning: #0f766e;
+  --level-mastered: #0b3f3b;
 }
 
 .dark {
@@ -43,6 +48,10 @@
   --danger: #f87171;
   --warning: #facc15;
   --focus: #5eead4;
+  /* En sombre, la rampe s'inverse : la progression devient plus claire. */
+  --level-new: #0f766e;
+  --level-learning: #14b8a6;
+  --level-mastered: #99f6e4;
 }
 
 @theme inline {
@@ -61,6 +70,9 @@
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-focus: var(--focus);
+  --color-level-new: var(--level-new);
+  --color-level-learning: var(--level-learning);
+  --color-level-mastered: var(--level-mastered);
 
   /* Jeu Associer : disparition d'une paire trouvée. */
   --animate-match-out: match-out 450ms ease-in forwards;

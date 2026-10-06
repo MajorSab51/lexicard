@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { Loading } from '@/components/Loading';
 import { PageHeader } from '@/components/PageHeader';
 import { useCardCounts, useSets } from '@/data/hooks';
+import { useSetsProgress } from '@/data/statsHooks';
 import { SetSummaryCard } from '@/features/sets/SetSummaryCard';
 import { t } from '@/i18n';
 import { TodayPanel } from './TodayPanel';
@@ -14,6 +15,7 @@ const RECENT_COUNT = 4;
 export function DashboardPage() {
   const sets = useSets();
   const counts = useCardCounts();
+  const progress = useSetsProgress();
 
   const actions = (
     <>
@@ -60,7 +62,11 @@ export function DashboardPage() {
         <ul className="grid gap-3 sm:grid-cols-2">
           {sets.slice(0, RECENT_COUNT).map((set) => (
             <li key={set.id}>
-              <SetSummaryCard set={set} cardCount={counts.get(set.id) ?? 0} />
+              <SetSummaryCard
+                set={set}
+                cardCount={counts.get(set.id) ?? 0}
+                counts={progress?.get(set.id)}
+              />
             </li>
           ))}
         </ul>

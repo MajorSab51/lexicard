@@ -34,6 +34,7 @@ import { CardList } from './CardList';
 import { ExportDialog } from './ExportDialog';
 import { MoveCardsDialog } from './MoveCardsDialog';
 import { SetNotFound } from './SetNotFound';
+import { SetStatsSection } from './SetStatsSection';
 
 const STUDY_MODES: readonly { mode: StudyMode; labelKey: MessageKey; icon: LucideIcon }[] = [
   { mode: 'flashcards', labelKey: 'study.modes.flashcards', icon: Layers },
@@ -186,6 +187,8 @@ export function SetDetailPage() {
           </ul>
         )}
       </section>
+
+      <SetStatsSection set={set} />
 
       <section aria-labelledby="cards-title">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

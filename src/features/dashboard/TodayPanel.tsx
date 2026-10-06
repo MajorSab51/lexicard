@@ -1,17 +1,21 @@
 import { Brain } from 'lucide-react';
 import { Link } from 'react-router';
 import { ButtonLink } from '@/components/Button';
+import { GoalMeter } from '@/components/GoalMeter';
 import { StatTiles } from '@/components/StatTiles';
 import { useDailyOverview } from '@/data/hooks';
+import { useTodayProgress } from '@/data/statsHooks';
 import { daysBetween } from '@/domain/dates';
 import { formatRelativeDays, t, tn } from '@/i18n';
 
 /** Révision du jour, tous sets confondus : compteurs et accès à « Tout réviser ». */
 export function TodayPanel() {
   const overview = useDailyOverview();
-  if (!overview) return null;
+  const today = useTodayProgress();
+  if (!overview || !today) return null;
 
-  const { today, counts, newToday, newLimit, nextDue } = overview;
+  const { counts, newToday, newLimit, nextDue } = overview;
+  const { streak, goal, progress } = today;
   const hasWork = counts.due + newToday > 0;
   const limitReached = !hasWork && counts.new > 0 && newToday === 0;
 
@@ -35,7 +39,7 @@ export function TodayPanel() {
               <>
                 {' '}
                 {t('srs.nextReview', {
-                  when: formatRelativeDays(Math.max(0, daysBetween(today, nextDue))),
+                  when: formatRelativeDays(Math.max(0, daysBetween(overview.today, nextDue))),
                 })}
               </>
             )}
@@ -61,6 +65,23 @@ export function TodayPanel() {
           { label: t('srs.dueToday'), value: counts.due, tone: 'primary' },
           { label: t('srs.newToday'), value: newToday },
           { label: t('srs.mastered'), value: counts.mastered, tone: 'success' },
+          {
+            label: t('dashboard.streak'),
+            value: tn('stats.streakDays', streak.current),
+            detail: streak.activeToday
+              ? t('stats.streakDone')
+              : streak.current > 0
+                ? t('stats.streakKeep')
+                : undefined,
+          },
+          {
+            label: t('stats.goal'),
+            value: t(`stats.goalProgress.${goal.kind}`, {
+              value: progress.value,
+              target: goal.target,
+            }),
+            detail: <GoalMeter progress={progress} label={t('stats.goal')} />,
+          },
         ]}
       />
     </section>

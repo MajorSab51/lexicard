@@ -193,7 +193,8 @@ describe('compteurs', () => {
     });
     renderRoute(`/sets/${set.id}`);
 
-    const tile = async (label: string) => (await screen.findByText(label)).nextSibling;
+    const study = await screen.findByRole('region', { name: 'Étudier' });
+    const tile = async (label: string) => (await within(study).findByText(label)).nextSibling;
     expect(await tile('À réviser aujourd’hui')).toHaveTextContent('1');
     expect(await tile('Nouvelles')).toHaveTextContent('1');
     expect(await tile('En cours')).toHaveTextContent('1');
