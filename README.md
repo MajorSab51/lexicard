@@ -2,7 +2,7 @@
 
 Application web personnelle pour apprendre du vocabulaire avec des cartes mémoire, plusieurs modes d'étude et de la répétition espacée. Toutes les données restent dans le navigateur : aucun compte, aucun traceur, aucun appel réseau.
 
-> **État actuel : jalon 3 (répétition espacée).** Gestion des sets et des cartes, éditeur rapide, import/export et sauvegarde, mode Cartes mémoire, synthèse vocale, mode Apprendre (SM-2) et révision du jour. Les modes Écrire, Test et Associer arrivent au jalon 4 (voir [Feuille de route](#feuille-de-route)).
+> **État actuel : jalon 4 (modes complémentaires).** Gestion des sets et des cartes, éditeur rapide, import/export et sauvegarde, synthèse vocale, et les cinq modes d'étude : Cartes mémoire, Apprendre (SM-2, révision du jour), Écrire, Test et Associer. Les statistiques arrivent au jalon 5 (voir [Feuille de route](#feuille-de-route)).
 
 ## Prérequis
 
@@ -120,9 +120,46 @@ La planification suit SM-2 (SuperMemo 2) dans sa formulation de référence. Ell
 - Une carte est **maîtrisée** dès que son intervalle atteint 21 jours. Un **oubli** est compté quand une carte déjà retenue est ratée.
 - Les dates sont des jours locaux : une carte prévue demain est due dès minuit, heure locale. Comme dans SM-2, une révision faite en retard ne modifie pas le calcul.
 
+### Mode Écrire
+
+Depuis le détail d'un set, **Étudier > Écrire**. Le terme s'affiche, on écrit la traduction (ou l'inverse, au choix dans les options), puis on valide avec `Entrée`. Un second `Entrée` passe à la carte suivante.
+
+- **Correction** : _correct_, _presque correct_ (avec la réponse attendue) ou _faux_ (avec la réponse attendue). Le bouton **Je ne sais pas** affiche directement la réponse. Les détails de la carte (exemple, note, image) sont rappelés avec la correction.
+- Une carte fausse revient en fin de session jusqu'à ce qu'elle soit trouvée. Le bilan donne le score du premier essai et la liste des cartes à revoir.
+- **Répétition espacée** : correct vaut Bien, presque correct vaut Difficile, faux vaut Raté. Seul le premier essai compte, et seulement pour une carte nouvelle ou due ; une carte prévue plus tard n'est replanifiée qu'en cas d'erreur (réussir en avance ne repousse pas sa révision).
+- Le champ de réponse désactive la correction automatique et le correcteur orthographique du navigateur, qui souffleraient la bonne orthographe.
+
+#### Correction des réponses écrites
+
+Utilisée par les modes Écrire et Test, réglable dans Paramètres > Apprentissage ou dans les options du mode Écrire.
+
+- Casse, ponctuation et espaces superflus sont ignorés : « Le chat ! » vaut « le chat ».
+- **Plusieurs réponses** : une traduction « chat ; matou » ou « he/she » accepte chaque partie. Le texte entre parenthèses est facultatif : « (to) run » accepte « run » et « to run ».
+- **Accents** : ignorés par défaut (« ete » vaut « été »). Si on choisit de les compter, une réponse juste à un accent près est _presque correcte_.
+- **Fautes de frappe** : aucune ; une faute dans les mots de 5 lettres ou plus (par défaut) ; ou indulgent (une faute dès 4 lettres, deux dès 9). Une faute est une lettre ajoutée, oubliée, remplacée, ou deux lettres voisines inversées (distance de Levenshtein, inversion comptée pour une faute). Une réponse acceptée grâce à cette tolérance est _presque correcte_.
+
+### Mode Test
+
+Depuis le détail d'un set, **Étudier > Test**. On choisit le nombre de questions (jusqu'à la taille du set), les types de questions et le sens ; ces choix sont retenus.
+
+- **Vrai ou faux** : une réponse est proposée, juste ou tirée d'une autre carte.
+- **Choix multiples** : quatre propositions, la bonne et trois autres tirées du même set.
+- **Association** : jusqu'à cinq cartes regroupées, chacune associée à sa réponse dans une liste.
+- **Réponse écrite** : corrigée avec les mêmes règles que le mode Écrire ; une réponse presque correcte compte comme juste.
+
+Chaque carte vaut un point. Le test est présenté sur une page, par sections, et un compteur indique les réponses données. À la fin : score, pourcentage, liste des erreurs (réponse donnée et bonne réponse), réponses acceptées à une faute près, et un bouton pour **refaire un test avec les cartes ratées** seulement. Terminer avec des questions sans réponse demande une confirmation.
+
+### Mode Associer
+
+Depuis le détail d'un set, **Étudier > Associer**. Une grille de douze tuiles (six termes et leurs traductions, mélangés) : on touche un terme puis sa traduction, ou l'inverse.
+
+- Une bonne paire disparaît avec une courte animation ; une mauvaise paire tremble et s'affiche en rouge. Toucher deux tuiles du même côté change simplement la sélection.
+- **Chronomètre** : chaque erreur ajoute une seconde, pour que tout essayer au hasard ne soit pas la meilleure stratégie. Le **meilleur temps** est enregistré par set.
+- Les cartes d'une partie sont tirées au hasard, sans deux termes ni deux traductions identiques (chaque tuile n'a qu'une paire possible). Il faut au moins deux cartes de ce type pour jouer.
+
 ### Synthèse vocale
 
-Un bouton **Écouter** prononce le recto, le verso et l'exemple des cartes mémoire, le terme, la traduction et l'exemple du mode Apprendre, ainsi que les termes dans le détail d'un set. La lecture utilise la Web Speech API (`speechSynthesis`) : les voix sont celles du système ou du navigateur.
+Un bouton **Écouter** prononce les termes, traductions et exemples dans les modes d'étude (sauf Associer), ainsi que les termes dans le détail d'un set. La lecture utilise la Web Speech API (`speechSynthesis`) : les voix sont celles du système ou du navigateur.
 
 - **Choix de la voix** : celle choisie dans Paramètres > Audio pour la langue, sinon la plus adaptée. L'ordre de préférence est : même variante régionale que le set, puis voix installée sur l'appareil, puis variante courante (`en-GB`, `es-ES`, `pt-PT`, `de-DE`…), puis voix par défaut du système.
 - **Vitesse** réglable de × 0,5 à × 1,5.
@@ -145,7 +182,9 @@ Les données sont stockées dans **IndexedDB** (base `lexicards`, via Dexie) et 
 
 Une progression contient l'intervalle, le facteur de facilité, le nombre de répétitions, la date due (`AAAA-MM-JJ`), les oublis, le niveau (`learning` ou `mastered`) et le jour d'introduction (`introducedOn`), qui sert à la limite de nouvelles cartes par jour.
 
-Paramètres enregistrés dans `settings` : `srs.newCardsPerDay` (nouvelles cartes par jour), `speech.rate` (vitesse de lecture), `speech.voices` (voix choisie par langue), `flashcards.options` (sens, mélange, filtre). Dans l'historique, `result` vaut `again`, `hard`, `good` ou `easy` pour les modes notés, et `seen` pour une carte simplement consultée.
+Paramètres enregistrés dans `settings` : `srs.newCardsPerDay` (nouvelles cartes par jour), `answers.tolerance` (accents et fautes de frappe), `speech.rate` (vitesse de lecture), `speech.voices` (voix choisie par langue), `flashcards.options`, `write.options` et `test.options` (options des modes), `match.bestTimes` (meilleur temps par set, en millisecondes).
+
+Dans l'historique, `mode` indique le mode d'étude et `result` vaut `again`, `hard`, `good` ou `easy` pour une réponse notée, `seen` pour une carte simplement consultée (Cartes mémoire). Un test enregistre une ligne par carte (juste : `good`, presque juste : `hard`, fausse : `again`) ; une partie d'Associer, une ligne `good` par paire trouvée. Seuls les modes Apprendre et Écrire modifient la répétition espacée.
 
 Toutes les entités ont un `userId` (toujours `null` dans le MVP) pour préparer l'arrivée des comptes. Les évolutions de schéma passent par une nouvelle `version()` Dexie, sans modifier les précédentes : la version 2 (jalon 3) ajoute l'index `introducedOn` aux progressions. À la restauration d'une sauvegarde, une progression sans date due valide est écartée et son niveau est recalculé à partir de l'intervalle.
 
@@ -172,7 +211,8 @@ src/
 ├─ app/          Routes, mises en page (navigation, plein écran d'étude), pages globales
 ├─ domain/       Logique métier pure, sans React ni IndexedDB, entièrement testée
 │                (modèle, cartes, doublons, aperçu d'import, langues, voix, cartes mémoire,
-│                jours locaux, SM-2, session du jour, file du mode Apprendre)
+│                jours locaux, SM-2, session du jour, file du mode Apprendre, correction
+│                des réponses, session Écrire, génération des tests, jeu Associer)
 ├─ data/         Base Dexie, dépôts (sets, cartes, progression, historique, paramètres),
 │                requêtes réactives
 │  └─ import-export/  CSV, JSON, sauvegarde, décodage des fichiers
@@ -219,6 +259,9 @@ Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sa
 - **Images par lien** : elles nécessitent une connexion et ne s'affichent pas hors ligne. Seuls les liens `http` et `https` sont acceptés. Elles sont chargées sans envoyer l'adresse de la page (`referrerpolicy="no-referrer"`).
 - **Voix « en ligne »** : certains navigateurs, Chrome notamment, proposent des voix hébergées qui envoient le texte lu au service de leur éditeur. LexiCards privilégie toujours les voix installées sur l'appareil et signale les voix en ligne dans les réglages. Une voix en ligne n'est utilisée que si elle est la seule disponible pour la langue, ou si elle a été choisie.
 - **SM-2 sans adaptation** : la note d'un rappel réussi (Difficile, Bien, Facile) ne change pas l'intervalle immédiat, seulement le facteur de facilité, donc les intervalles suivants. Pour une carte nouvelle, Raté et Bien donnent tous deux « demain » ; la carte ratée revient en plus en fin de session et repart ensuite à 1 jour au lieu de 6. Les boutons n'affichent donc pas d'aperçu d'intervalle, qui serait souvent identique pour les trois rappels réussis.
+- **« Presque correct » vaut Difficile** dans la répétition espacée : la carte reste retenue, mais son facteur de facilité baisse. Dans un test, une réponse presque correcte compte comme juste et apparaît dans une liste à part.
+- **Séparateurs `;` et `/`** : ils découpent toujours la réponse attendue en plusieurs formulations acceptées, comme le demande le cahier des charges. Une traduction qui contient une barre oblique (« 1/2 ») est donc découpée elle aussi ; la réponse complète reste acceptée.
+- **Meilleurs temps d'Associer** : gardés dans les paramètres, ils ne sont pas effacés à la suppression d'un set (quelques octets).
 - **Changement de jour** : les compteurs sont recalculés à chaque affichage ou modification des données. Une page laissée ouverte après minuit se met à jour à la navigation suivante.
 - **Voix dépendantes de l'appareil** : un Windows en français n'a souvent que des voix françaises. L'anglais, l'espagnol ou l'allemand demandent alors d'installer des voix (voir [Synthèse vocale](#synthèse-vocale)). Les voix choisies sont incluses dans les sauvegardes ; si une voix n'existe pas sur un autre appareil, le choix automatique prend le relais.
 
@@ -229,7 +272,7 @@ Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sa
 - Polices système uniquement : aucune police téléchargée.
 - Animations neutralisées si l'utilisateur active « réduire les animations ».
 - Lien « Aller au contenu », titres de page mis à jour (y compris dans les modes d'étude), cibles tactiles de 44 px minimum.
-- Modes d'étude : la carte affichée puis sa réponse sont annoncées aux lecteurs d'écran. Dans le mode Apprendre, le focus passe du bouton « Afficher la réponse » aux boutons de note, puis revient.
+- Modes d'étude : la carte affichée puis sa réponse sont annoncées aux lecteurs d'écran. Dans le mode Apprendre, le focus passe du bouton « Afficher la réponse » aux boutons de note, puis revient ; dans le mode Écrire, du champ de réponse au bouton « Continuer ». Le mode Test utilise des groupes de boutons radio et des listes natives ; dans Associer, les tuiles sont des boutons et chaque tentative est annoncée.
 - Fenêtres modales natives (`<dialog>`) : focus piégé, fermeture avec `Échap`. Les notifications sont annoncées aux lecteurs d'écran.
 - Les champs de terme et de traduction portent l'attribut `lang` de leur langue (correcteur orthographique et lecteurs d'écran adaptés).
 
@@ -243,6 +286,6 @@ Tous les textes sont dans `src/i18n/fr.ts`. La fonction `t('nav.home')` est typ�
 - [x] **Jalon 1, données** : modèle Dexie, gestion des sets et cartes, éditeur rapide, import/export
 - [x] **Jalon 2, étude de base** : mode Cartes mémoire, synthèse vocale
 - [x] **Jalon 3, répétition espacée** : module SM-2, mode Apprendre, session du jour
-- [ ] **Jalon 4, modes complémentaires** : Écrire, Test, Associer
+- [x] **Jalon 4, modes complémentaires** : Écrire, Test, Associer
 - [ ] **Jalon 5, suivi** : statistiques, objectifs, série de jours
 - [ ] **Jalon 6, finitions** : paramètres, accessibilité, PWA, tests de bout en bout
