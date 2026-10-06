@@ -118,7 +118,7 @@ export function MatchBoard({ set, cards, onComplete }: MatchBoardProps) {
       <div
         role="group"
         aria-label={t('match.grid')}
-        className="grid flex-1 grid-cols-3 gap-2 sm:grid-cols-4"
+        className="grid grid-cols-3 gap-2 sm:grid-cols-4"
       >
         {state.tiles.map((tile) => {
           const matched = state.matched.includes(tile.cardId);
