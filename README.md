@@ -2,7 +2,7 @@
 
 Application web personnelle pour apprendre du vocabulaire avec des cartes mémoire, plusieurs modes d'étude et de la répétition espacée. Toutes les données restent dans le navigateur : aucun compte, aucun traceur, aucun appel réseau.
 
-> **État actuel : jalon 1 (données).** Création et gestion des sets et des cartes, éditeur rapide au clavier, import CSV/JSON avec détection des doublons, export et sauvegarde complète. Les modes d'étude arrivent aux jalons suivants (voir [Feuille de route](#feuille-de-route)).
+> **État actuel : jalon 2 (étude de base).** Gestion des sets et des cartes, éditeur rapide, import/export et sauvegarde, mode Cartes mémoire et synthèse vocale. Les autres modes d'étude arrivent aux jalons suivants (voir [Feuille de route](#feuille-de-route)).
 
 ## Prérequis
 
@@ -70,6 +70,32 @@ Un doublon est un terme identique sans tenir compte de la casse ni des espaces, 
 - **Toutes les cartes** : CSV avec une colonne `set` en plus (Paramètres > Données).
 - **Sauvegarde complète** : JSON avec sets, cartes, progression, historique et paramètres. La **restauration** remplace toutes les données après confirmation, en une seule transaction. Les éléments incohérents (carte sans set, etc.) sont écartés et comptés.
 
+### Mode Cartes mémoire
+
+Depuis le détail d'un set, **Étudier > Cartes mémoire**. La carte se retourne avec une animation (supprimée si l'appareil demande de réduire les animations).
+
+| Geste ou touche                   | Action             |
+| --------------------------------- | ------------------ |
+| Clic, appui, `Espace` ou `Entrée` | Retourner la carte |
+| `→` ou balayage vers la gauche    | Carte suivante     |
+| `←` ou balayage vers la droite    | Carte précédente   |
+
+- **Options**, retenues d'une session à l'autre : sens (terme → traduction ou l'inverse), mélange, cartes difficiles uniquement.
+- Marquage **favorite** ou **difficile** de la carte en cours. En fin de série, l'écran propose de recommencer ou de revoir les cartes difficiles.
+- Le verso affiche la traduction, l'exemple, la note, la catégorie, le genre et l'image.
+- Chaque carte retournée est enregistrée dans l'historique avec le résultat `seen` (« vue ») : elle compte pour la série de jours mais ne modifie pas la répétition espacée.
+
+### Synthèse vocale
+
+Un bouton **Écouter** prononce le recto, le verso et l'exemple des cartes mémoire, ainsi que les termes dans le détail d'un set. La lecture utilise la Web Speech API (`speechSynthesis`) : les voix sont celles du système ou du navigateur.
+
+- **Choix de la voix** : celle choisie dans Paramètres > Audio pour la langue, sinon la plus adaptée. L'ordre de préférence est : même variante régionale que le set, puis voix installée sur l'appareil, puis variante courante (`en-GB`, `es-ES`, `pt-PT`, `de-DE`…), puis voix par défaut du système.
+- **Vitesse** réglable de × 0,5 à × 1,5.
+- **Aucune voix pour la langue** : un message l'explique, plutôt que de lire le mot avec l'accent d'une autre langue.
+- **Réglages par langue** dans Paramètres > Audio, avec un bouton Tester qui prononce le nom de la langue dans cette langue (« español », « Deutsch »…).
+
+**Installer des voix** : sous Windows, Paramètres > Heure et langue > Voix (ou installer le module de langue) ; sur macOS et iOS, Réglages > Accessibilité > Contenu énoncé > Voix ; sur Android, Paramètres > Synthèse vocale.
+
 ## Données et fiabilité
 
 Les données sont stockées dans **IndexedDB** (base `lexicards`, via Dexie) et survivent au rechargement comme à la fermeture du navigateur.
@@ -81,6 +107,8 @@ Les données sont stockées dans **IndexedDB** (base `lexicards`, via Dexie) et 
 | `progress`   | État de répétition espacée par carte (jalon 3)                     |
 | `reviewLogs` | Historique des révisions, conservé même après suppression d'un set |
 | `settings`   | Paramètres clé/valeur                                              |
+
+Paramètres enregistrés dans `settings` : `speech.rate` (vitesse de lecture), `speech.voices` (voix choisie par langue), `flashcards.options` (sens, mélange, filtre). Dans l'historique, `result` vaut `again`, `hard`, `good` ou `easy` pour les modes notés, et `seen` pour une carte simplement consultée.
 
 Toutes les entités ont un `userId` (toujours `null` dans le MVP) pour préparer l'arrivée des comptes. Les évolutions de schéma passent par une nouvelle `version()` Dexie, sans modifier les précédentes.
 
@@ -106,15 +134,16 @@ Sur téléphone, l'application doit être servie en **HTTPS** pour pouvoir être
 src/
 ├─ app/          Routes, mises en page (navigation, plein écran d'étude), pages globales
 ├─ domain/       Logique métier pure, sans React ni IndexedDB, entièrement testée
-│                (modèle, nettoyage des cartes, doublons, aperçu d'import, langues)
+│                (modèle, cartes, doublons, aperçu d'import, langues, voix, cartes mémoire)
 ├─ data/         Base Dexie, dépôts (sets, cartes, paramètres), requêtes réactives
 │  └─ import-export/  CSV, JSON, sauvegarde, décodage des fichiers
 ├─ features/     Un dossier par fonctionnalité : dashboard, sets, editor, import,
 │                flashcards, learn, write, test, match, stats, settings
 ├─ components/   Composants d'interface réutilisables (boutons, champs, fenêtres…)
-├─ hooks/        Hooks React transverses
+├─ hooks/        Hooks transverses : raccourcis clavier, gestes, contexte de synthèse vocale
 ├─ i18n/         Textes de l'interface (français), fonctions t() et tn() typées
-├─ lib/          Utilitaires techniques (identifiants, téléchargement, notifications, thème)
+├─ lib/          Utilitaires techniques (identifiants, téléchargement, notifications, thème,
+│                accès à speechSynthesis)
 ├─ styles/       Tailwind et jetons de couleur
 └─ test/         Configuration, fabriques de données et rendu des routes pour les tests
 ```
@@ -148,7 +177,9 @@ Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sa
 - **Thème stocké dans `localStorage`** : un petit script dans `index.html` doit le lire de façon synchrone pour appliquer le bon thème avant l'affichage, sans flash.
 - **Éditeur non virtualisé** : toutes les lignes sont rendues pour que `Tab` et `Entrée` passent naturellement d'une carte à l'autre. Il reste fluide jusqu'à environ 1 000 cartes par set. La liste du détail d'un set, elle, est virtualisée dès 200 cartes.
 - **CSV exporté avec des virgules** (format documenté) et un BOM UTF-8. Excel en français ouvre ces fichiers dans une seule colonne lors d'un double-clic : utiliser plutôt Données > À partir d'un fichier texte/CSV. Les cellules qui ressemblent à une formule (`=`, `+`, `@`) sont préfixées d'une apostrophe, retirée à l'import.
-- **Images par lien** : elles nécessitent une connexion et ne s'affichent pas hors ligne. Seuls les liens `http` et `https` sont acceptés.
+- **Images par lien** : elles nécessitent une connexion et ne s'affichent pas hors ligne. Seuls les liens `http` et `https` sont acceptés. Elles sont chargées sans envoyer l'adresse de la page (`referrerpolicy="no-referrer"`).
+- **Voix « en ligne »** : certains navigateurs, Chrome notamment, proposent des voix hébergées qui envoient le texte lu au service de leur éditeur. LexiCards privilégie toujours les voix installées sur l'appareil et signale les voix en ligne dans les réglages. Une voix en ligne n'est utilisée que si elle est la seule disponible pour la langue, ou si elle a été choisie.
+- **Voix dépendantes de l'appareil** : un Windows en français n'a souvent que des voix françaises. L'anglais, l'espagnol ou l'allemand demandent alors d'installer des voix (voir [Synthèse vocale](#synthèse-vocale)). Les voix choisies sont incluses dans les sauvegardes ; si une voix n'existe pas sur un autre appareil, le choix automatique prend le relais.
 
 ### Thème et accessibilité
 
@@ -168,7 +199,7 @@ Tous les textes sont dans `src/i18n/fr.ts`. La fonction `t('nav.home')` est typ�
 
 - [x] **Jalon 0, socle** : outillage, structure, thème, routage
 - [x] **Jalon 1, données** : modèle Dexie, gestion des sets et cartes, éditeur rapide, import/export
-- [ ] **Jalon 2, étude de base** : mode Cartes mémoire, synthèse vocale
+- [x] **Jalon 2, étude de base** : mode Cartes mémoire, synthèse vocale
 - [ ] **Jalon 3, répétition espacée** : module SM-2, mode Apprendre, session du jour
 - [ ] **Jalon 4, modes complémentaires** : Écrire, Test, Associer
 - [ ] **Jalon 5, suivi** : statistiques, objectifs, série de jours
