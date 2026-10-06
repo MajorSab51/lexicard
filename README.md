@@ -2,7 +2,7 @@
 
 Application web personnelle pour apprendre du vocabulaire avec des cartes mémoire, plusieurs modes d'étude et de la répétition espacée. Toutes les données restent dans le navigateur : aucun compte, aucun traceur, aucun appel réseau.
 
-> **État actuel : jalon 2 (étude de base).** Gestion des sets et des cartes, éditeur rapide, import/export et sauvegarde, mode Cartes mémoire et synthèse vocale. Les autres modes d'étude arrivent aux jalons suivants (voir [Feuille de route](#feuille-de-route)).
+> **État actuel : jalon 3 (répétition espacée).** Gestion des sets et des cartes, éditeur rapide, import/export et sauvegarde, mode Cartes mémoire, synthèse vocale, mode Apprendre (SM-2) et révision du jour. Les modes Écrire, Test et Associer arrivent au jalon 4 (voir [Feuille de route](#feuille-de-route)).
 
 ## Prérequis
 
@@ -85,9 +85,44 @@ Depuis le détail d'un set, **Étudier > Cartes mémoire**. La carte se retourne
 - Le verso affiche la traduction, l'exemple, la note, la catégorie, le genre et l'image.
 - Chaque carte retournée est enregistrée dans l'historique avec le résultat `seen` (« vue ») : elle compte pour la série de jours mais ne modifie pas la répétition espacée.
 
+### Mode Apprendre (répétition espacée)
+
+Depuis le détail d'un set, **Étudier > Apprendre** ; ou depuis l'accueil, **Tout réviser** pour tous les sets à la fois.
+
+- **Session du jour** : toutes les cartes dues (prévues aujourd'hui ou en retard), mélangées, puis des cartes jamais étudiées, dans l'ordre du set. Les nouvelles cartes sont limitées à **10 par jour, tous sets confondus** (réglable dans Paramètres > Apprentissage, de 0 à 200). Avec « Tout réviser », elles sont prises d'abord dans les sets modifiés le plus récemment.
+- Pour chaque carte : afficher la réponse, puis s'évaluer.
+
+| Touche               | Action              |
+| -------------------- | ------------------- |
+| `Espace` ou `Entrée` | Afficher la réponse |
+| `1`                  | Raté                |
+| `2`                  | Difficile           |
+| `3`                  | Bien                |
+| `4`                  | Facile              |
+
+- Une carte **ratée** revient en fin de session (« à revoir ») jusqu'à ce qu'elle soit retrouvée. Seule la première réponse du jour compte pour la planification ; les suivantes sont gardées dans l'historique.
+- **Compteurs** : pendant la session, les cartes restantes (à réviser, nouvelles, à revoir) ; sur l'accueil, les cartes à réviser aujourd'hui, les nouvelles du jour et les cartes maîtrisées ; sur la page d'un set, la répartition à réviser / nouvelles / en cours / maîtrisées.
+- En fin de session, un bilan donne le nombre de cartes étudiées, les réponses par note et la prochaine révision. Quand il n'y a rien à réviser, l'écran indique la prochaine date prévue et, le cas échéant, que la limite de nouvelles cartes du jour est atteinte.
+
+#### Algorithme SM-2
+
+La planification suit SM-2 (SuperMemo 2) dans sa formulation de référence. Elle est codée dans le module pur `src/domain/srs.ts`, entièrement testé.
+
+| Bouton    | Note SM-2 (q) | Effet                                                   |
+| --------- | ------------- | ------------------------------------------------------- |
+| Raté      | 1             | Répétitions remises à zéro, carte due demain, EF − 0,54 |
+| Difficile | 3             | Rappel réussi, EF − 0,14                                |
+| Bien      | 4             | Rappel réussi, EF inchangé                              |
+| Facile    | 5             | Rappel réussi, EF + 0,1                                 |
+
+- **Intervalles** d'un rappel réussi : 1 jour, puis 6 jours, puis l'intervalle précédent × facteur de facilité (EF), arrondi. L'EF part de 2,5 et ne descend jamais sous 1,3 : EF ← EF + (0,1 − (5 − q) × (0,08 + (5 − q) × 0,02)). L'intervalle est calculé avec l'EF d'avant la réponse.
+- Exemple avec « Bien » à chaque fois : 1, 6, 15, 38 jours. Avec « Difficile » : 1, 6, 13, 27 jours. Avec « Facile » : 1, 6, 16, 45 jours.
+- Une carte est **maîtrisée** dès que son intervalle atteint 21 jours. Un **oubli** est compté quand une carte déjà retenue est ratée.
+- Les dates sont des jours locaux : une carte prévue demain est due dès minuit, heure locale. Comme dans SM-2, une révision faite en retard ne modifie pas le calcul.
+
 ### Synthèse vocale
 
-Un bouton **Écouter** prononce le recto, le verso et l'exemple des cartes mémoire, ainsi que les termes dans le détail d'un set. La lecture utilise la Web Speech API (`speechSynthesis`) : les voix sont celles du système ou du navigateur.
+Un bouton **Écouter** prononce le recto, le verso et l'exemple des cartes mémoire, le terme, la traduction et l'exemple du mode Apprendre, ainsi que les termes dans le détail d'un set. La lecture utilise la Web Speech API (`speechSynthesis`) : les voix sont celles du système ou du navigateur.
 
 - **Choix de la voix** : celle choisie dans Paramètres > Audio pour la langue, sinon la plus adaptée. L'ordre de préférence est : même variante régionale que le set, puis voix installée sur l'appareil, puis variante courante (`en-GB`, `es-ES`, `pt-PT`, `de-DE`…), puis voix par défaut du système.
 - **Vitesse** réglable de × 0,5 à × 1,5.
@@ -100,17 +135,19 @@ Un bouton **Écouter** prononce le recto, le verso et l'exemple des cartes mémo
 
 Les données sont stockées dans **IndexedDB** (base `lexicards`, via Dexie) et survivent au rechargement comme à la fermeture du navigateur.
 
-| Table        | Contenu                                                            |
-| ------------ | ------------------------------------------------------------------ |
-| `sets`       | Sets de vocabulaire                                                |
-| `cards`      | Cartes, triées par `[setId+order]`                                 |
-| `progress`   | État de répétition espacée par carte (jalon 3)                     |
-| `reviewLogs` | Historique des révisions, conservé même après suppression d'un set |
-| `settings`   | Paramètres clé/valeur                                              |
+| Table        | Contenu                                                              |
+| ------------ | -------------------------------------------------------------------- |
+| `sets`       | Sets de vocabulaire                                                  |
+| `cards`      | Cartes, triées par `[setId+order]`                                   |
+| `progress`   | Répétition espacée par carte (SM-2), absente pour une carte nouvelle |
+| `reviewLogs` | Historique des révisions, conservé même après suppression d'un set   |
+| `settings`   | Paramètres clé/valeur                                                |
 
-Paramètres enregistrés dans `settings` : `speech.rate` (vitesse de lecture), `speech.voices` (voix choisie par langue), `flashcards.options` (sens, mélange, filtre). Dans l'historique, `result` vaut `again`, `hard`, `good` ou `easy` pour les modes notés, et `seen` pour une carte simplement consultée.
+Une progression contient l'intervalle, le facteur de facilité, le nombre de répétitions, la date due (`AAAA-MM-JJ`), les oublis, le niveau (`learning` ou `mastered`) et le jour d'introduction (`introducedOn`), qui sert à la limite de nouvelles cartes par jour.
 
-Toutes les entités ont un `userId` (toujours `null` dans le MVP) pour préparer l'arrivée des comptes. Les évolutions de schéma passent par une nouvelle `version()` Dexie, sans modifier les précédentes.
+Paramètres enregistrés dans `settings` : `srs.newCardsPerDay` (nouvelles cartes par jour), `speech.rate` (vitesse de lecture), `speech.voices` (voix choisie par langue), `flashcards.options` (sens, mélange, filtre). Dans l'historique, `result` vaut `again`, `hard`, `good` ou `easy` pour les modes notés, et `seen` pour une carte simplement consultée.
+
+Toutes les entités ont un `userId` (toujours `null` dans le MVP) pour préparer l'arrivée des comptes. Les évolutions de schéma passent par une nouvelle `version()` Dexie, sans modifier les précédentes : la version 2 (jalon 3) ajoute l'index `introducedOn` aux progressions. À la restauration d'une sauvegarde, une progression sans date due valide est écartée et son niveau est recalculé à partir de l'intervalle.
 
 **À savoir**
 
@@ -134,8 +171,10 @@ Sur téléphone, l'application doit être servie en **HTTPS** pour pouvoir être
 src/
 ├─ app/          Routes, mises en page (navigation, plein écran d'étude), pages globales
 ├─ domain/       Logique métier pure, sans React ni IndexedDB, entièrement testée
-│                (modèle, cartes, doublons, aperçu d'import, langues, voix, cartes mémoire)
-├─ data/         Base Dexie, dépôts (sets, cartes, paramètres), requêtes réactives
+│                (modèle, cartes, doublons, aperçu d'import, langues, voix, cartes mémoire,
+│                jours locaux, SM-2, session du jour, file du mode Apprendre)
+├─ data/         Base Dexie, dépôts (sets, cartes, progression, historique, paramètres),
+│                requêtes réactives
 │  └─ import-export/  CSV, JSON, sauvegarde, décodage des fichiers
 ├─ features/     Un dossier par fonctionnalité : dashboard, sets, editor, import,
 │                flashcards, learn, write, test, match, stats, settings
@@ -150,7 +189,7 @@ src/
 
 **Règles de dépendance** : `domain/` ne dépend de rien d'autre ; `data/` dépend de `domain/` ; `features/` assemble le tout. La logique métier (répétition espacée, comparaison des réponses, génération de tests) est donc testable sans navigateur.
 
-Les écrans lisent les données avec `useLiveQuery` (Dexie) : ils se mettent à jour automatiquement après chaque écriture, y compris depuis un autre onglet. Les écrans secondaires (éditeur, import, paramètres, modes d'étude, statistiques) sont chargés à la demande pour alléger le premier affichage.
+Les écrans lisent les données avec `useLiveQuery` (Dexie) : ils se mettent à jour automatiquement après chaque écriture, y compris depuis un autre onglet. Exception : une session Apprendre part d'un instantané chargé au départ, pour que la file ne change pas à chaque réponse enregistrée. Les écrans secondaires (éditeur, import, paramètres, modes d'étude, statistiques) sont chargés à la demande pour alléger le premier affichage.
 
 Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sans simulacre.
 
@@ -179,6 +218,8 @@ Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sa
 - **CSV exporté avec des virgules** (format documenté) et un BOM UTF-8. Excel en français ouvre ces fichiers dans une seule colonne lors d'un double-clic : utiliser plutôt Données > À partir d'un fichier texte/CSV. Les cellules qui ressemblent à une formule (`=`, `+`, `@`) sont préfixées d'une apostrophe, retirée à l'import.
 - **Images par lien** : elles nécessitent une connexion et ne s'affichent pas hors ligne. Seuls les liens `http` et `https` sont acceptés. Elles sont chargées sans envoyer l'adresse de la page (`referrerpolicy="no-referrer"`).
 - **Voix « en ligne »** : certains navigateurs, Chrome notamment, proposent des voix hébergées qui envoient le texte lu au service de leur éditeur. LexiCards privilégie toujours les voix installées sur l'appareil et signale les voix en ligne dans les réglages. Une voix en ligne n'est utilisée que si elle est la seule disponible pour la langue, ou si elle a été choisie.
+- **SM-2 sans adaptation** : la note d'un rappel réussi (Difficile, Bien, Facile) ne change pas l'intervalle immédiat, seulement le facteur de facilité, donc les intervalles suivants. Pour une carte nouvelle, Raté et Bien donnent tous deux « demain » ; la carte ratée revient en plus en fin de session et repart ensuite à 1 jour au lieu de 6. Les boutons n'affichent donc pas d'aperçu d'intervalle, qui serait souvent identique pour les trois rappels réussis.
+- **Changement de jour** : les compteurs sont recalculés à chaque affichage ou modification des données. Une page laissée ouverte après minuit se met à jour à la navigation suivante.
 - **Voix dépendantes de l'appareil** : un Windows en français n'a souvent que des voix françaises. L'anglais, l'espagnol ou l'allemand demandent alors d'installer des voix (voir [Synthèse vocale](#synthèse-vocale)). Les voix choisies sont incluses dans les sauvegardes ; si une voix n'existe pas sur un autre appareil, le choix automatique prend le relais.
 
 ### Thème et accessibilité
@@ -187,7 +228,8 @@ Les tests utilisent `fake-indexeddb` : ils passent par la vraie couche Dexie, sa
 - Palette sarcelle originale ; tous les couples texte/fond respectent un contraste AA (≥ 4,5:1).
 - Polices système uniquement : aucune police téléchargée.
 - Animations neutralisées si l'utilisateur active « réduire les animations ».
-- Lien « Aller au contenu », titres de page mis à jour, cibles tactiles de 44 px minimum.
+- Lien « Aller au contenu », titres de page mis à jour (y compris dans les modes d'étude), cibles tactiles de 44 px minimum.
+- Modes d'étude : la carte affichée puis sa réponse sont annoncées aux lecteurs d'écran. Dans le mode Apprendre, le focus passe du bouton « Afficher la réponse » aux boutons de note, puis revient.
 - Fenêtres modales natives (`<dialog>`) : focus piégé, fermeture avec `Échap`. Les notifications sont annoncées aux lecteurs d'écran.
 - Les champs de terme et de traduction portent l'attribut `lang` de leur langue (correcteur orthographique et lecteurs d'écran adaptés).
 
@@ -200,7 +242,7 @@ Tous les textes sont dans `src/i18n/fr.ts`. La fonction `t('nav.home')` est typ�
 - [x] **Jalon 0, socle** : outillage, structure, thème, routage
 - [x] **Jalon 1, données** : modèle Dexie, gestion des sets et cartes, éditeur rapide, import/export
 - [x] **Jalon 2, étude de base** : mode Cartes mémoire, synthèse vocale
-- [ ] **Jalon 3, répétition espacée** : module SM-2, mode Apprendre, session du jour
+- [x] **Jalon 3, répétition espacée** : module SM-2, mode Apprendre, session du jour
 - [ ] **Jalon 4, modes complémentaires** : Écrire, Test, Associer
 - [ ] **Jalon 5, suivi** : statistiques, objectifs, série de jours
 - [ ] **Jalon 6, finitions** : paramètres, accessibilité, PWA, tests de bout en bout
