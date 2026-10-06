@@ -69,3 +69,12 @@ export function tn(key: PluralKey, count: number, params?: Params): string {
   const form = new Intl.PluralRules(currentLocale).select(count) === 'one' ? 'one' : 'other';
   return t(`${key}.${form}` as MessageKey, { count, ...params });
 }
+
+/** Écart en jours exprimé en langage courant : « aujourd’hui », « demain », « dans 6 jours ». */
+export function formatRelativeDays(days: number): string {
+  return new Intl.RelativeTimeFormat(currentLocale, { numeric: 'auto' }).format(days, 'day');
+}
+
+export function formatNumber(value: number): string {
+  return format(value);
+}

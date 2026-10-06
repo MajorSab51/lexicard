@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useEffect } from 'react';
 import { Link, Outlet, useMatches, useParams } from 'react-router';
 import { t, type MessageKey } from '@/i18n';
 
@@ -17,6 +18,11 @@ export function StudyLayout() {
     .map((match) => match.handle)
     .findLast(isStudyHandle);
   const exitTo = setId ? `/sets/${setId}` : '/';
+  const title = handle ? t(handle.titleKey) : null;
+
+  useEffect(() => {
+    if (title) document.title = `${title} · ${t('app.name')}`;
+  }, [title]);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -28,7 +34,7 @@ export function StudyLayout() {
         >
           <X aria-hidden="true" className="size-6" />
         </Link>
-        {handle && <span className="font-semibold">{t(handle.titleKey)}</span>}
+        {title && <span className="font-semibold">{title}</span>}
       </header>
       <main
         id="main"

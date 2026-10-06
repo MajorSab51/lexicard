@@ -6,6 +6,17 @@ import { db } from './db';
 import { logReview } from './reviewLogsRepository';
 import { readSetting, SETTINGS } from './settingsRepository';
 
+function toProgressMap(entries: readonly (CardProgress | undefined)[]): Map<Id, CardProgress> {
+  const map = new Map<Id, CardProgress>();
+  for (const entry of entries) if (entry) map.set(entry.cardId, entry);
+  return map;
+}
+
+/** Progression de plusieurs cartes ; les cartes nouvelles n'y figurent pas. */
+export async function getProgressMap(cardIds: readonly Id[]): Promise<Map<Id, CardProgress>> {
+  return toProgressMap(await db.progress.bulkGet([...cardIds]));
+}
+
 /** Nombre de cartes étudiées pour la première fois ce jour-là, tous sets confondus. */
 export function countIntroducedOn(day: LocalDay): Promise<number> {
   return db.progress.where('introducedOn').equals(day).count();
@@ -79,11 +90,9 @@ export async function loadStudyScope(setId: Id | null, now = new Date()): Promis
   const today = toLocalDay(now);
   return db.transaction('r', [db.sets, db.cards, db.progress, db.settings], async () => {
     const { sets, cards } = await scopeCards(setId);
-    const entries = setId
-      ? await db.progress.bulkGet(cards.map((card) => card.id))
-      : await db.progress.toArray();
-    const progress = new Map<Id, CardProgress>();
-    for (const entry of entries) if (entry) progress.set(entry.cardId, entry);
+    const progress = setId
+      ? await getProgressMap(cards.map((card) => card.id))
+      : toProgressMap(await db.progress.toArray());
 
     return {
       today,

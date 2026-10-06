@@ -24,7 +24,7 @@ export interface LearnSession {
   tally: Readonly<Record<Grade, number>>;
 }
 
-export type LearnAction = { type: 'reveal' } | { type: 'answer'; grade: Grade } | { type: 'skip' };
+export type LearnAction = { type: 'reveal' } | { type: 'answer'; grade: Grade };
 
 const emptyTally = (): Record<Grade, number> =>
   Object.fromEntries(GRADES.map((grade) => [grade, 0])) as Record<Grade, number>;
@@ -52,8 +52,6 @@ export function learnReducer(session: LearnSession, action: LearnAction): LearnS
   switch (action.type) {
     case 'reveal':
       return session.revealed ? session : { ...session, revealed: true };
-    case 'skip':
-      return { ...session, queue: rest, revealed: false };
     case 'answer': {
       // On ne note qu'une réponse affichée.
       if (!session.revealed) return session;

@@ -71,12 +71,6 @@ describe('session Apprendre', () => {
     expect(updatesSchedule({ cardId: 'a', kind: 'relearn' })).toBe(false);
   });
 
-  it('passe une carte supprimée entre-temps', () => {
-    const session = learnReducer(start(), { type: 'skip' });
-    expect(currentItem(session)?.cardId).toBe('r2');
-    expect(studiedCount(session)).toBe(0);
-  });
-
   it('est terminée d’emblée quand il n’y a rien à réviser', () => {
     const session = startLearnSession({ reviewIds: [], newIds: [] });
     expect(isFinished(session)).toBe(true);

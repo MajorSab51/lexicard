@@ -1,10 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toLocalDay, type LocalDay } from '@/domain/dates';
-import type { Card, CardProgress, Id, StudySet } from '@/domain/models';
-import { countSrs, newCardAllowance, type SrsCounts } from '@/domain/studyPlan';
+import type { Card, Id, StudySet } from '@/domain/models';
+import { countSrs, earliestDueDate, newCardAllowance, type SrsCounts } from '@/domain/studyPlan';
 import { getSetCards } from './cardsRepository';
 import { db } from './db';
-import { countIntroducedOn } from './progressRepository';
+import { countIntroducedOn, getProgressMap } from './progressRepository';
 import { readSetting, SETTINGS } from './settingsRepository';
 
 /*
@@ -42,15 +42,13 @@ export function useCardCounts(): Map<Id, number> | undefined {
 export function useSetSrsCounts(setId: Id | undefined): SrsCounts | undefined {
   return useLiveQuery(async () => {
     const ids: Id[] = setId ? await db.cards.where('setId').equals(setId).primaryKeys() : [];
-    const progress = new Map<Id, CardProgress>();
-    for (const entry of await db.progress.bulkGet(ids)) {
-      if (entry) progress.set(entry.cardId, entry);
-    }
+    const progress = await getProgressMap(ids);
     return countSrs(ids, progress, toLocalDay(new Date()));
   }, [setId]);
 }
 
 export interface DailyOverview {
+  today: LocalDay;
   /** Compteurs de toutes les cartes, tous sets confondus. */
   counts: SrsCounts;
   newLimit: number;
@@ -75,10 +73,21 @@ export function useDailyOverview(): DailyOverview | undefined {
     ]);
     const fresh = Math.max(0, total - learning - mastered);
     return {
+      today,
       counts: { total, due, new: fresh, learning, mastered },
       newLimit,
       newToday: Math.min(fresh, newCardAllowance(newLimit, introducedToday)),
       nextDue: first?.dueDate ?? null,
     };
   }, []);
+}
+
+/** Prochain jour de révision d'un set, ou de toutes les cartes (`null`). */
+export function useNextDue(setId: Id | null): LocalDay | null | undefined {
+  return useLiveQuery(async () => {
+    if (!setId) return (await db.progress.orderBy('dueDate').first())?.dueDate ?? null;
+    const ids: Id[] = await db.cards.where('setId').equals(setId).primaryKeys();
+    const progress = await getProgressMap(ids);
+    return earliestDueDate(ids, progress);
+  }, [setId]);
 }

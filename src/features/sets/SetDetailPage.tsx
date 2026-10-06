@@ -21,9 +21,10 @@ import { EmptyState } from '@/components/EmptyState';
 import { Loading } from '@/components/Loading';
 import { PageHeader } from '@/components/PageHeader';
 import { SET_COLOR_CLASSES } from '@/components/setColors';
+import { StatTiles } from '@/components/StatTiles';
 import { TagList } from '@/components/TagList';
 import { deleteCards } from '@/data/cardsRepository';
-import { useSet, useSetCards } from '@/data/hooks';
+import { useSet, useSetCards, useSetSrsCounts } from '@/data/hooks';
 import { deleteSet, duplicateSet } from '@/data/setsRepository';
 import { languageName } from '@/domain/languages';
 import type { StudyMode } from '@/domain/models';
@@ -49,6 +50,7 @@ export function SetDetailPage() {
   const navigate = useNavigate();
   const set = useSet(setId);
   const cards = useSetCards(setId);
+  const srsCounts = useSetSrsCounts(setId);
   const [dialog, setDialog] = useState<OpenDialog>(null);
   const [selecting, setSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
@@ -155,6 +157,17 @@ export function SetDetailPage() {
         <h2 id="study-title" className="mb-3 text-lg font-semibold">
           {t('setDetail.study')}
         </h2>
+        {cards.length > 0 && srsCounts && (
+          <StatTiles
+            className="mb-3"
+            items={[
+              { label: t('srs.dueToday'), value: srsCounts.due, tone: 'primary' },
+              { label: t('srs.new'), value: srsCounts.new },
+              { label: t('srs.learning'), value: srsCounts.learning },
+              { label: t('srs.mastered'), value: srsCounts.mastered, tone: 'success' },
+            ]}
+          />
+        )}
         {cards.length === 0 ? (
           <p className="text-fg-muted">{t('setDetail.studyNeedsCards')}</p>
         ) : (

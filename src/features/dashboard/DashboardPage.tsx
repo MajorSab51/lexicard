@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { useCardCounts, useSets } from '@/data/hooks';
 import { SetSummaryCard } from '@/features/sets/SetSummaryCard';
 import { t } from '@/i18n';
+import { TodayPanel } from './TodayPanel';
 
 const RECENT_COUNT = 4;
 
@@ -46,6 +47,7 @@ export function DashboardPage() {
   return (
     <>
       <PageHeader title={t('dashboard.welcome')} subtitle={t('app.tagline')} actions={actions} />
+      <TodayPanel />
       <section aria-labelledby="recent-sets">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 id="recent-sets" className="text-lg font-semibold">

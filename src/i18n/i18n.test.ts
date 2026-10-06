@@ -1,4 +1,4 @@
-import { t } from './index';
+import { formatRelativeDays, t } from './index';
 
 describe('t', () => {
   it('retourne le texte français d’une clé imbriquée', () => {
@@ -11,5 +11,13 @@ describe('t', () => {
       'Cet écran sera disponible au jalon 2.',
     );
     expect(t('common.comingSoon')).toBe('Cet écran sera disponible au {milestone}.');
+  });
+});
+
+describe('formatRelativeDays', () => {
+  it('formule les écarts de jours en langage courant', () => {
+    expect(formatRelativeDays(0)).toBe('aujourd’hui');
+    expect(formatRelativeDays(1)).toBe('demain');
+    expect(formatRelativeDays(6)).toBe('dans 6 jours');
   });
 });

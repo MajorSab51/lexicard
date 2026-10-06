@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, Flag, PartyPopper, SlidersHorizontal, Star } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Button, ButtonLink } from '@/components/Button';
+import { CardDetails } from '@/components/CardDetails';
 import { EmptyState } from '@/components/EmptyState';
 import { setCardFlags } from '@/data/cardsRepository';
 import { logReview } from '@/data/reviewLogsRepository';
@@ -16,7 +17,6 @@ import type { Card, Id, StudySet } from '@/domain/models';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useSwipe } from '@/hooks/useSwipe';
 import { t, tn } from '@/i18n';
-import { FlashcardBackDetails } from './FlashcardBackDetails';
 import { FlashcardFace } from './FlashcardFace';
 
 interface FlashcardSessionProps {
@@ -258,7 +258,7 @@ export function FlashcardSession({ set, cards, initialOptions }: FlashcardSessio
                 hidden={!session.flipped}
                 back
               >
-                <FlashcardBackDetails card={current} termLang={set.sourceLang} />
+                <CardDetails card={current} termLang={set.sourceLang} />
               </FlashcardFace>
             </div>
           </div>

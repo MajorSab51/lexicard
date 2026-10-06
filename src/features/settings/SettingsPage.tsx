@@ -4,6 +4,7 @@ import { t } from '@/i18n';
 import type { ThemePreference } from '@/lib/theme';
 import { AudioSection } from './AudioSection';
 import { DataSection } from './DataSection';
+import { LearningSection } from './LearningSection';
 import { useThemeStore } from './themeStore';
 
 const THEME_OPTIONS: readonly { value: ThemePreference; icon: LucideIcon }[] = [
@@ -50,6 +51,7 @@ export function SettingsPage() {
           </fieldset>
         </section>
 
+        <LearningSection />
         <AudioSection />
         <DataSection />
       </div>
