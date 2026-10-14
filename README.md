@@ -164,7 +164,9 @@ Depuis le détail d'un set, **Étudier > Test**. On choisit le nombre de questio
 - **Association** : jusqu'à cinq cartes regroupées, chacune associée à sa réponse dans une liste.
 - **Réponse écrite** : corrigée avec les mêmes règles que le mode Écrire ; une réponse presque correcte compte comme juste.
 
-Chaque carte vaut un point. Le test est présenté sur une page, par sections, et un compteur indique les réponses données. À la fin : score, pourcentage, liste des erreurs (réponse donnée et bonne réponse), réponses acceptées à une faute près, et un bouton pour **refaire un test avec les cartes ratées** seulement. Terminer avec des questions sans réponse demande une confirmation.
+Chaque test est tiré au sort : les cartes, le type de question de chacune, l'ordre des questions (les types sont mélangés) et les propositions. Les types restent répartis à parts égales. Si le nombre de questions atteint la taille du set, toutes les cartes sont testées : seuls leur ordre et leur type changent.
+
+Chaque carte vaut un point. Le test est présenté sur une page, chaque question indiquant son type, et un compteur indique les réponses données. À la fin : score, pourcentage, liste des erreurs (réponse donnée et bonne réponse), réponses acceptées à une faute près, et un bouton pour **refaire un test avec les cartes ratées** seulement. Terminer avec des questions sans réponse demande une confirmation.
 
 ### Mode Associer
 

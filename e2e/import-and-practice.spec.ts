@@ -90,7 +90,7 @@ test('importer un CSV de 200 lignes puis s’entraîner avec Écrire, Test et As
   await openMode(page, 'Test');
   await page.getByLabel('Nombre de questions').fill('8');
   await page.getByRole('button', { name: 'Commencer le test' }).click();
-  const questions = page.getByRole('group', { name: /^Question \d+$/ });
+  const questions = page.getByRole('group', { name: /^Question \d+ · / });
   await expect(questions.first()).toBeVisible();
   for (const question of await questions.all()) await answerQuestion(question);
   await page.getByRole('button', { name: 'Terminer le test' }).click();

@@ -70,14 +70,33 @@ describe('génération d’un test', () => {
     expect(make({ count: 50 }).cardIds).toHaveLength(cards.length);
   });
 
-  it('répartit les cartes entre les types activés, regroupés par section', () => {
+  it('répartit les cartes à parts égales entre les types activés', () => {
     const test = make({ count: 12 });
-    const kinds = test.questions.map((q) => q.kind);
-    expect([...new Set(kinds)]).toEqual(['trueFalse', 'multipleChoice', 'matching', 'written']);
     for (const kind of ['trueFalse', 'multipleChoice', 'written'] as const) {
       expect(ofKind(test, kind)).toHaveLength(3);
     }
     expect(ofKind(test, 'matching').flatMap((q) => q.items)).toHaveLength(3);
+  });
+
+  it('tire au sort les cartes, leur type et l’ordre des questions à chaque test', () => {
+    const describeTest = (test: GeneratedTest) =>
+      test.questions.map((q) => `${q.kind}:${questionCardIds(q).join('+')}`).join(' ');
+    const tests = [1, 2, 3, 4, 5].map((seed) => make({ count: 8 }, { seed }));
+
+    expect(new Set(tests.map(describeTest)).size).toBe(tests.length);
+    // Les types sont mélangés : pas de sections dans un ordre fixe.
+    const kindOrders = tests.map((test) => [...new Set(test.questions.map((q) => q.kind))].join());
+    expect(new Set(kindOrders).size).toBeGreaterThan(1);
+  });
+
+  it('change de test en test les types qui reçoivent les questions en surplus', () => {
+    // 5 cartes pour 3 types : deux types ont 2 questions, le troisième 1.
+    const types = ['trueFalse', 'multipleChoice', 'written'] as const;
+    const smallest = [1, 2, 3, 4, 5, 6].map((seed) => {
+      const test = make({ count: 5, types: [...types] }, { seed });
+      return types.find((kind) => ofKind(test, kind).length === 1);
+    });
+    expect(new Set(smallest).size).toBeGreaterThan(1);
   });
 
   it('ne génère que les types choisis', () => {
@@ -110,7 +129,7 @@ describe('génération d’un test', () => {
 
   it('regroupe les associations par cinq, sans groupe d’une seule carte', () => {
     const groups = ofKind(make({ count: 11, types: ['matching'] }), 'matching');
-    expect(groups.map((g) => g.items.length)).toEqual([5, 6]);
+    expect(groups.map((g) => g.items.length).sort()).toEqual([5, 6]);
     for (const group of groups) {
       for (const item of group.items) {
         const card = cards.find((c) => c.id === item.cardId);

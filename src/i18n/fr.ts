@@ -352,7 +352,7 @@ export const fr = {
     },
     typesRequired: 'Choisis au moins un type de questions.',
     start: 'Commencer le test',
-    questionNumber: 'Question {n}',
+    questionLabel: 'Question {n} · {type}',
     proposedLabel: 'Réponse proposée :',
     true: 'Vrai',
     false: 'Faux',

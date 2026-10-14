@@ -6,9 +6,11 @@ import { shuffle } from './random';
 /*
  * Génération et correction des tests. Chaque carte testée donne un point :
  * une question d'association regroupe plusieurs cartes, chacune notée séparément.
+ * Tout est tiré au sort à chaque test : les cartes, le type de question de chacune,
+ * l'ordre des questions et les propositions.
  */
 
-/** Types de questions, dans l'ordre des sections du test (du plus simple au plus exigeant). */
+/** Types de questions, du plus simple au plus exigeant (ordre des options du test). */
 export const QUESTION_TYPES = ['trueFalse', 'multipleChoice', 'matching', 'written'] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
@@ -88,15 +90,24 @@ interface GenerateInput {
 
 const answerKey = (face: CardFace) => normalizeAnswer(face.text, false);
 
-/** Choix des types : répartition égale, en écartant ceux que le set ne permet pas. */
-function assignTypes(count: number, options: TestOptions, distinctAnswers: number): QuestionType[] {
+/**
+ * Choix des types : répartition aussi égale que possible, en écartant ceux que le set ne
+ * permet pas. L'ordre des types est tiré au sort, pour que les questions en surplus
+ * n'aillent pas toujours aux mêmes types.
+ */
+function assignTypes(
+  count: number,
+  options: TestOptions,
+  distinctAnswers: number,
+  random: () => number,
+): QuestionType[] {
   const feasible = QUESTION_TYPES.filter(
     (type) =>
       options.types.includes(type) &&
       (type === 'written' || type === 'matching' || distinctAnswers >= 2) &&
       (type !== 'matching' || count >= 2),
   );
-  const types: QuestionType[] = feasible.length > 0 ? feasible : ['written'];
+  const types: QuestionType[] = shuffle(feasible.length > 0 ? feasible : ['written'], random);
   const assigned = Array.from({ length: count }, (_, i) => types[i % types.length] ?? 'written');
 
   // Une association demande au moins deux cartes : sinon, la carte change de type.
@@ -144,7 +155,7 @@ export function generateTest({
       random,
     );
 
-  const types = assignTypes(selected.length, options, pool.size);
+  const types = assignTypes(selected.length, options, pool.size, random);
   const byType = new Map<QuestionType, TestQuestion[]>(QUESTION_TYPES.map((type) => [type, []]));
   const matchingCards: Card[] = [];
 
@@ -208,7 +219,8 @@ export function generateTest({
     byType.get('matching')?.push({ kind: 'matching', items, choices });
   }
 
-  const questions = QUESTION_TYPES.flatMap((type) => byType.get(type) ?? []);
+  // Types mélangés : l'ordre des questions change d'un test à l'autre.
+  const questions = shuffle([...byType.values()].flat(), random);
   return { questions, cardIds: questions.flatMap(questionCardIds) };
 }
 

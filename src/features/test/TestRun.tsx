@@ -3,9 +3,7 @@ import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { normalizeAnswer } from '@/domain/answers';
 import {
-  QUESTION_TYPES,
   type GeneratedTest,
-  type QuestionType,
   type TestQuestion,
   type TestResponse,
   type TestResponses,
@@ -34,7 +32,7 @@ function isAnswered(response: TestResponse | undefined): boolean {
     : response !== undefined;
 }
 
-/** Le test complet sur une page, par sections, avec la validation en bas. */
+/** Le test complet sur une page, types de questions mélangés, avec la validation en bas. */
 export function TestRun({ test, onFinish }: TestRunProps) {
   const [responses, setResponses] = useState<Record<string, TestResponse>>({});
   const [confirming, setConfirming] = useState(false);
@@ -53,10 +51,6 @@ export function TestRun({ test, onFinish }: TestRunProps) {
     onFinish(responses, elapsedSince(startedAt.current));
   };
 
-  const sections = QUESTION_TYPES.map((type) => ({
-    type,
-    questions: test.questions.filter((question) => question.kind === type),
-  })).filter((section) => section.questions.length > 0);
   const numbers = new Map(test.questions.map((question, index) => [question, index + 1]));
 
   const renderQuestion = (question: TestQuestion) => {
@@ -80,16 +74,11 @@ export function TestRun({ test, onFinish }: TestRunProps) {
   return (
     // Pas de <form> : Entrée dans une réponse écrite ne doit pas terminer le test.
     <div className="grid gap-8">
-      {sections.map(({ type, questions }) => (
-        <section key={type} aria-labelledby={`test-${type}`} className="grid gap-3">
-          <h2 id={`test-${type}`} className="text-lg font-semibold">
-            {t(`test.typeNames.${type satisfies QuestionType}`)}
-          </h2>
-          {questions.map((question) => (
-            <div key={questionKey(question)}>{renderQuestion(question)}</div>
-          ))}
-        </section>
-      ))}
+      <ol className="grid gap-3">
+        {test.questions.map((question) => (
+          <li key={questionKey(question)}>{renderQuestion(question)}</li>
+        ))}
+      </ol>
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-bg/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
         <p aria-live="polite" className="text-sm font-medium text-fg-muted">

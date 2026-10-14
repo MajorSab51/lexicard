@@ -98,7 +98,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     await open('SET/test');
     await page.getByRole('button', { name: 'Commencer le test' }).click();
-    await expect(page.getByRole('group', { name: 'Question 1', exact: true })).toBeVisible();
+    await expect(page.getByRole('group', { name: /^Question 1 · / })).toBeVisible();
     await audit('test : questions');
     await page.getByRole('button', { name: 'Terminer le test' }).click();
     await expect(page.getByRole('dialog', { name: 'Terminer le test ?' })).toBeVisible();

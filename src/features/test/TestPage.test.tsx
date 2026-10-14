@@ -33,7 +33,7 @@ async function setUp(user: ReturnType<typeof renderRoute>['user'], type: string,
 
 /** Questions affichées, avec le terme demandé. */
 function questions() {
-  return screen.getAllByRole('group', { name: /^Question \d+$/ }).map((group) => ({
+  return screen.getAllByRole('group', { name: /^Question \d+ · / }).map((group) => ({
     group,
     term: Object.keys(WORDS).find((term) => within(group).queryByText(term)) ?? '',
   }));
@@ -95,7 +95,7 @@ describe('mode Test', () => {
     const { user } = renderRoute(`/sets/${set.id}/test`);
     await setUp(user, 'Association', 3);
 
-    const [group] = screen.getAllByRole('group', { name: /^Question \d+$/ });
+    const [group] = screen.getAllByRole('group', { name: /^Question \d+ · / });
     const selects = within(group!).getAllByRole('combobox');
     expect(selects).toHaveLength(3);
     for (const select of selects) {

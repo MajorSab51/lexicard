@@ -31,12 +31,20 @@ function Prompt({ face }: { face: CardFace }) {
   );
 }
 
-function QuestionFrame({ number, children }: { number: number; children: ReactNode }) {
+interface QuestionFrameProps {
+  number: number;
+  kind: TestQuestion['kind'];
+  children: ReactNode;
+}
+
+/** Cadre d'une question : son numéro et son type, les types étant mélangés. */
+function QuestionFrame({ number, kind, children }: QuestionFrameProps) {
+  const label = t('test.questionLabel', { n: number, type: t(`test.typeNames.${kind}`) });
   return (
     <fieldset className="grid gap-3 rounded-2xl border border-border bg-surface p-4">
-      <legend className="sr-only">{t('test.questionNumber', { n: number })}</legend>
+      <legend className="sr-only">{label}</legend>
       <p aria-hidden="true" className="text-xs font-medium tracking-wide text-fg-muted uppercase">
-        {t('test.questionNumber', { n: number })}
+        {label}
       </p>
       {children}
     </fieldset>
@@ -51,7 +59,7 @@ export function TrueFalseQuestion({
 }: QuestionProps<'trueFalse'>) {
   const name = useId();
   return (
-    <QuestionFrame number={number}>
+    <QuestionFrame number={number} kind={question.kind}>
       <Prompt face={question.prompt} />
       <p>
         {t('test.proposedLabel')}{' '}
@@ -87,7 +95,7 @@ export function MultipleChoiceQuestion({
 }: QuestionProps<'multipleChoice'>) {
   const name = useId();
   return (
-    <QuestionFrame number={number}>
+    <QuestionFrame number={number} kind={question.kind}>
       <Prompt face={question.prompt} />
       <div className="grid gap-2 sm:grid-cols-2">
         {question.choices.map((choice, index) => (
@@ -117,7 +125,7 @@ export function MatchingQuestion({
 }: QuestionProps<'matching'>) {
   const baseId = useId();
   return (
-    <QuestionFrame number={number}>
+    <QuestionFrame number={number} kind={question.kind}>
       <p className="text-fg-muted">{t('test.matchingHelp')}</p>
       <ul className="grid gap-3">
         {question.items.map((item, index) => {
@@ -160,7 +168,7 @@ export function WrittenQuestion({
   const id = useId();
   const value = response(question.cardId);
   return (
-    <QuestionFrame number={number}>
+    <QuestionFrame number={number} kind={question.kind}>
       <Prompt face={question.prompt} />
       <div>
         <label htmlFor={id} className="mb-1.5 block text-sm font-medium">
